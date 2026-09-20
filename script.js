@@ -90,7 +90,7 @@ function makeReceipt() {
     return "選択された項目はありません。\n合計 ¥0";
   }
 
-  return "【ラシティメカニック 請求内容】\n\n" +
+  return "【パレットタウン 請求内容】\n\n" +
     lines.join("\n") +
     `\n\n合計　${yen(total)}`;
 }
