@@ -106,11 +106,12 @@ document.getElementById("resetBtn").addEventListener("click", () => {
 });
 
 document.getElementById("copyBtn").addEventListener("click", async () => {
-  const text = makeReceipt();
+  const total = calculate();
+  const text = String(total);
 
   try {
     await navigator.clipboard.writeText(text);
-    document.getElementById("message").textContent = "請求内容をコピーしました。";
+    document.getElementById("message").textContent = "金額をコピーしました。";
   } catch {
     document.getElementById("message").textContent = "コピーできませんでした。";
   }
