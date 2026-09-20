@@ -107,7 +107,8 @@ document.getElementById("resetBtn").addEventListener("click", () => {
 
 document.getElementById("copyBtn").addEventListener("click", async () => {
   const total = calculate();
-  const text = String(total);
+
+  const text = Number(total).toLocaleString("ja-JP");
 
   try {
     await navigator.clipboard.writeText(text);
