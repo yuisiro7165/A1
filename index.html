@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>パレットタウン - 請求計算</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>パレットタウン</h1>
+      <p>請求金額計算</p>
+    </header>
+
+    <section class="card">
+      <h2>基本料金</h2>
+      <div class="item-list">
+        <div class="item">
+          <span>修理（一か所）</span>
+          <strong>¥300,000</strong>
+          <input type="number" min="0" value="0" data-price="300000" class="qty">
+        </div>
+        <div class="item">
+          <span>出張修理（1台につき）</span>
+          <strong>¥1,000,000</strong>
+          <input type="number" min="0" value="0" data-price="1000000" class="qty">
+        </div>
+        <div class="item">
+          <span>外装系カスタム</span>
+          <strong>¥200,000</strong>
+          <input type="number" min="0" value="0" data-price="200000" class="qty">
+        </div>
+        <div class="item">
+          <span>塗装（一か所）</span>
+          <strong>¥100,000</strong>
+          <input type="number" min="0" value="0" data-price="100000" class="qty">
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>性能カスタム</h2>
+      <div id="tierItems"></div>
+    </section>
+
+    <section class="card">
+      <h2>その他</h2>
+      <div class="item-list">
+        <div class="item"><span>アーマー</span><strong>¥40,000,000</strong><input type="number" min="0" value="0" data-price="40000000" class="qty"></div>
+        <div class="item"><span>ターボ</span><strong>¥5,000,000</strong><input type="number" min="0" value="0" data-price="5000000" class="qty"></div>
+        <div class="item"><span>ニトロ新規</span><strong>¥4,000,000</strong><input type="number" min="0" value="0" data-price="4000000" class="qty"></div>
+        <div class="item"><span>ニトロ交換</span><strong>¥2,000,000</strong><input type="number" min="0" value="0" data-price="2000000" class="qty"></div>
+        <div class="item"><span>アンチラグ</span><strong>¥3,000,000</strong><input type="number" min="0" value="0" data-price="3000000" class="qty"></div>
+        <div class="item"><span>ドリフトタイヤ</span><strong>¥1,000,000</strong><input type="number" min="0" value="0" data-price="1000000" class="qty"></div>
+        <div class="item"><span>マニュアルギア</span><strong>¥1,000,000</strong><input type="number" min="0" value="0" data-price="1000000" class="qty"></div>
+        <div class="item"><span>ダクトテープ</span><strong>¥500,000</strong><input type="number" min="0" value="0" data-price="500000" class="qty"></div>
+        <div class="item"><span>車両塗装缶</span><strong>¥250,000</strong><input type="number" min="0" value="0" data-price="250000" class="qty"></div>
+        <div class="item"><span>ネオンコントローラー</span><strong>¥200,000</strong><input type="number" min="0" value="0" data-price="200000" class="qty"></div>
+        <div class="item"><span>クリーニングキット</span><strong>¥100,000</strong><input type="number" min="0" value="0" data-price="100000" class="qty"></div>
+      </div>
+    </section>
+
+    <section class="total-card">
+      <span>請求合計額</span>
+      <strong id="total">¥0</strong>
+    </section>
+
+    <div class="actions">
+      <button id="copyBtn">内容をコピー</button>
+      <button id="resetBtn" class="secondary">リセット</button>
+    </div>
+
+    <p id="message" class="message"></p>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
