@@ -10,112 +10,149 @@ const tierData = {
   "バッテリーケーブル": [1200000, 1300000, 1600000]
 };
 
+
+// ========================================
+// 性能カスタムの生成
+// ========================================
+
 const tierItems = document.getElementById("tierItems");
 
 for (const [name, prices] of Object.entries(tierData)) {
   const row = document.createElement("div");
   row.className = "tier-row";
 
+  // 項目名
   const label = document.createElement("span");
   label.textContent = name;
 
+  // 選択欄
   const select = document.createElement("select");
   select.className = "tier";
   select.dataset.name = name;
 
+  // なし
   const none = document.createElement("option");
   none.value = "0";
   none.textContent = "なし";
   select.appendChild(none);
 
+  // T1～T5
   prices.forEach((price, i) => {
     const option = document.createElement("option");
+
     option.value = price;
     option.textContent = `T${i + 1}  ${yen(price)}`;
+
     select.appendChild(option);
   });
 
-  row.append(label, select);
+  row.appendChild(label);
+  row.appendChild(select);
+
   tierItems.appendChild(row);
 }
+
+
+// ========================================
+// 金額を円表示に変換
+// ========================================
 
 function yen(value) {
   return "¥" + Number(value).toLocaleString("ja-JP");
 }
 
+
+// ========================================
+// 合計金額を計算
+// ========================================
+
 function calculate() {
   let total = 0;
 
+  // 通常商品の計算
   document.querySelectorAll(".qty").forEach(input => {
     const quantity = Math.max(0, Number(input.value) || 0);
-    total += quantity * Number(input.dataset.price);
+    const price = Number(input.dataset.price);
+
+    total += quantity * price;
   });
 
+  // 性能カスタムの計算
   document.querySelectorAll(".tier").forEach(select => {
     total += Number(select.value) || 0;
   });
 
+  // 合計金額を画面に表示
   document.getElementById("total").textContent = yen(total);
+
   return total;
 }
 
-function makeReceipt() {
-  const lines = [];
-  let total = 0;
 
-  document.querySelectorAll(".item").forEach(item => {
-    const input = item.querySelector(".qty");
-    const quantity = Number(input.value) || 0;
-
-    if (quantity > 0) {
-      const name = item.querySelector("span").textContent;
-      const price = Number(input.dataset.price);
-      const subtotal = price * quantity;
-      total += subtotal;
-      lines.push(`${name} × ${quantity}　${yen(subtotal)}`);
-    }
-  });
-
-  document.querySelectorAll(".tier").forEach(select => {
-    if (select.value !== "0") {
-      const price = Number(select.value);
-      const tierText = select.options[select.selectedIndex].textContent;
-      const name = select.dataset.name;
-      total += price;
-      lines.push(`${name} ${tierText}　${yen(price)}`);
-    }
-  });
-
-  if (lines.length === 0) {
-    return "選択された項目はありません。\n合計 ¥0";
-  }
-
-  return "【パレットタウン 請求内容】\n\n" +
-    lines.join("\n") +
-    `\n\n合計　${yen(total)}`;
-}
+// ========================================
+// 数量・性能カスタムが変更されたら再計算
+// ========================================
 
 document.addEventListener("input", calculate);
 document.addEventListener("change", calculate);
 
+
+// ========================================
+// リセットボタン
+// ========================================
+
 document.getElementById("resetBtn").addEventListener("click", () => {
-  document.querySelectorAll(".qty").forEach(input => input.value = 0);
-  document.querySelectorAll(".tier").forEach(select => select.value = "0");
+
+  // 通常商品の数量を0に戻す
+  document.querySelectorAll(".qty").forEach(input => {
+    input.value = 0;
+  });
+
+  // 性能カスタムを「なし」に戻す
+  document.querySelectorAll(".tier").forEach(select => {
+    select.value = "0";
+  });
+
+  // 合計を再計算
   calculate();
-  document.getElementById("message").textContent = "リセットしました。";
+
+  // メッセージ表示
+  document.getElementById("message").textContent =
+    "リセットしました。";
 });
 
+
+// ========================================
+// 金額コピー
+// ========================================
+
 document.getElementById("copyBtn").addEventListener("click", async () => {
+
+  // 現在の合計金額を取得
   const total = calculate();
 
+  // 金額だけをコピー
+  // 例：300000 → 300,000
   const text = Number(total).toLocaleString("ja-JP");
 
   try {
+
     await navigator.clipboard.writeText(text);
-    document.getElementById("message").textContent = "金額をコピーしました。";
-  } catch {
-    document.getElementById("message").textContent = "コピーできませんでした。";
+
+    document.getElementById("message").textContent =
+      "金額をコピーしました。";
+
+  } catch (error) {
+
+    document.getElementById("message").textContent =
+      "コピーできませんでした。";
+
   }
 });
+
+
+// ========================================
+// ページ読み込み時に初期計算
+// ========================================
 
 calculate();
