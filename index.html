@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Palette Town | Mechanic Desk</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">PT</div>
+        <div>
+          <div class="eyebrow">PALETTE TOWN / GARAGE</div>
+          <h1>Mechanic Desk</h1>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span class="status"><i></i> READY</span>
+        <button id="copyBtn">金額をコピー</button>
+        <button id="resetBtn" class="ghost">リセット</button>
+      </div>
+    </header>
+
+    <section class="summary">
+      <div>
+        <p class="eyebrow">CURRENT BILL</p>
+        <div class="total" id="total">¥0</div>
+      </div>
+      <div class="summary-note">
+        選択した作業・パーツの料金を<br>リアルタイムで集計します
+      </div>
+      <div class="message" id="message"></div>
+    </section>
+
+    <main class="workspace">
+      <section class="panel performance">
+        <div class="panel-head">
+          <div>
+            <span class="section-no">01</span>
+            <h2>性能カスタム</h2>
+          </div>
+          <span class="hint">1項目につき1段階</span>
+        </div>
+        <div class="tier-table">
+          <div class="tier-head">
+            <span>PART</span>
+            <span>T1</span><span>T2</span><span>T3</span><span>T4</span><span>T5</span>
+          </div>
+          <div id="tierItems"></div>
+        </div>
+      </section>
+
+      <div class="side-stack">
+        <section class="panel compact">
+          <div class="panel-head">
+            <div>
+              <span class="section-no">02</span>
+              <h2>外装カスタム</h2>
+            </div>
+            <strong>¥200,000 / 件</strong>
+          </div>
+          <div class="check-grid" id="exteriorGrid"></div>
+        </section>
+
+        <section class="panel compact">
+          <div class="panel-head">
+            <div>
+              <span class="section-no">03</span>
+              <h2>塗装</h2>
+            </div>
+            <strong>¥100,000 / 件</strong>
+          </div>
+          <div class="check-grid paint-grid" id="paintGrid"></div>
+        </section>
+
+        <section class="panel compact">
+          <div class="panel-head">
+            <div>
+              <span class="section-no">04</span>
+              <h2>基本作業</h2>
+            </div>
+          </div>
+          <div class="basic-list">
+            <label class="basic-row">
+              <span>修理（一か所）<small>¥300,000</small></span>
+              <input type="number" min="0" value="0" data-price="300000" class="qty">
+            </label>
+            <label class="basic-row">
+              <span>出張修理（1台）<small>¥1,000,000</small></span>
+              <input type="number" min="0" value="0" data-price="1000000" class="qty">
+            </label>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <section class="panel other">
+      <div class="panel-head">
+        <div>
+          <span class="section-no">05</span>
+          <h2>その他パーツ</h2>
+        </div>
+        <span class="hint">必要なものだけチェック / 数量入力</span>
+      </div>
+      <div class="parts-grid" id="partsGrid"></div>
+    </section>
+
+    <footer>
+      <span>PALETTE TOWN MECHANIC DESK</span>
+      <span>LOCAL BILLING TOOL</span>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
