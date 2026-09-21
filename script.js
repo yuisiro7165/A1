@@ -188,30 +188,25 @@ document.querySelectorAll(".tier-check").forEach(input => {
 
 const themeBtn = document.getElementById("themeBtn");
 
-function updateThemeButton() {
-  const dark = document.body.classList.contains("dark");
+if (themeBtn) {
+  themeBtn.addEventListener("click", function () {
+    document.body.classList.toggle("dark");
 
-  themeBtn.textContent = dark ? "☀️" : "🌙";
-  themeBtn.title = dark ? "ライトモード" : "ダークモード";
+    if (document.body.classList.contains("dark")) {
+      themeBtn.textContent = "☀️";
+      localStorage.setItem("mechanic-theme", "dark");
+    } else {
+      themeBtn.textContent = "🌙";
+      localStorage.setItem("mechanic-theme", "light");
+    }
+  });
+
+  if (localStorage.getItem("mechanic-theme") === "dark") {
+    document.body.classList.add("dark");
+    themeBtn.textContent = "☀️";
+  } else {
+    themeBtn.textContent = "🌙";
+  }
 }
 
-themeBtn.addEventListener("click", () => {
-  document.body.classList.toggle("dark");
-
-  const dark =
-    document.body.classList.contains("dark");
-
-  localStorage.setItem(
-    "mechanic-theme",
-    dark ? "dark" : "light"
-  );
-
-  updateThemeButton();
-});
-
-if (localStorage.getItem("mechanic-theme") === "dark") {
-  document.body.classList.add("dark");
-}
-
-updateThemeButton();
 calculate();
