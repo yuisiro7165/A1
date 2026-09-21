@@ -10,7 +10,6 @@ const tierData = {
   "バッテリーケーブル": [1200000, 1300000, 1600000]
 };
 
-
 const parts = [
   ["アーマー", 40000000, false],
   ["ターボ", 5000000, false],
@@ -26,59 +25,39 @@ const parts = [
   ["クリーニングキット", 100000, false]
 ];
 
-
-// =========================
-// 金額表示
-// =========================
-
 const yen = n => "¥" + Number(n).toLocaleString("ja-JP");
-
-
-// =========================
-// 性能カスタム
-// =========================
 
 const tierItems = document.getElementById("tierItems");
 
 for (const [name, prices] of Object.entries(tierData)) {
-
   const row = document.createElement("div");
   row.className = "tier-row";
 
   const label = document.createElement("span");
   label.textContent = name;
-
   row.appendChild(label);
 
-
   for (let i = 0; i < 5; i++) {
-
     const cell = document.createElement("div");
     cell.className = "tier-cell";
 
     if (prices[i]) {
-
       const label = document.createElement("label");
-
       const input = document.createElement("input");
 
       input.type = "checkbox";
       input.className = "tier-check";
-
       input.dataset.price = prices[i];
       input.dataset.name = name;
       input.dataset.tier = i + 1;
 
       label.appendChild(input);
 
-
       const price = document.createElement("span");
-
       price.className = "tier-price";
       price.textContent = yen(prices[i]);
 
       label.appendChild(price);
-
       cell.appendChild(label);
     }
 
@@ -88,27 +67,15 @@ for (const [name, prices] of Object.entries(tierData)) {
   tierItems.appendChild(row);
 }
 
-
-// =========================
-// その他パーツ
-// =========================
-
 const partsGrid = document.getElementById("partsGrid");
 
 for (const [name, price, hasQty] of parts) {
-
   const card = document.createElement("div");
-
   card.className = "part";
-
 
   card.innerHTML = `
     <div>
-
-      <div class="part-name">
-        ${name}
-      </div>
-
+      <div class="part-name">${name}</div>
       <div class="part-price">
         ${yen(price)}${hasQty ? " / 個" : ""}
       </div>
@@ -126,7 +93,6 @@ for (const [name, price, hasQty] of parts) {
           `
           : ""
       }
-
     </div>
 
     ${
@@ -145,146 +111,107 @@ for (const [name, price, hasQty] of parts) {
   partsGrid.appendChild(card);
 }
 
-
-// =========================
-// 合計計算
-// =========================
-
 function calculate() {
-
   let total = 0;
 
-
-  // 個数入力
   document.querySelectorAll(".qty").forEach(input => {
-
-    const quantity = Math.max(
-      0,
-      Number(input.value) || 0
-    );
-
+    const quantity = Math.max(0, Number(input.value) || 0);
     const price = Number(input.dataset.price);
 
     total += quantity * price;
   });
 
-
-  // チェックボックス
   document
-    .querySelectorAll(
-      ".tier-check:checked, .part-check:checked"
-    )
+    .querySelectorAll(".tier-check:checked, .part-check:checked")
     .forEach(input => {
-
       total += Number(input.dataset.price);
     });
-
 
   document.getElementById("total").textContent = yen(total);
 
   return total;
 }
 
-
-// =========================
-// 入力時に自動計算
-// =========================
-
 document.addEventListener("input", calculate);
-
 document.addEventListener("change", calculate);
 
+document.getElementById("resetBtn").addEventListener("click", () => {
+  document.querySelectorAll("input[type=checkbox]").forEach(input => {
+    input.checked = false;
+  });
 
-// =========================
-// リセット
-// =========================
+  document.querySelectorAll(".qty").forEach(input => {
+    input.value = 0;
+  });
 
-document
-  .getElementById("resetBtn")
-  .addEventListener("click", () => {
+  calculate();
+  document.getElementById("message").textContent = "リセットしました";
+});
 
-    document
-      .querySelectorAll("input[type=checkbox]")
-      .forEach(input => {
-        input.checked = false;
-      });
+document.getElementById("copyBtn").addEventListener("click", async () => {
+  const total = calculate();
 
+  // カンマ・¥記号なし
+  const text = String(total);
 
-    document
-      .querySelectorAll(".qty")
-      .forEach(input => {
-        input.value = 0;
-      });
+  try {
+    await navigator.clipboard.writeText(text);
+    document.getElementById("message").textContent =
+      "金額をコピーしました";
+  } catch {
+    document.getElementById("message").textContent =
+      "コピーできませんでした";
+  }
+});
 
+/* 性能カスタムは1項目につき1段階 */
+
+document.querySelectorAll(".tier-check").forEach(input => {
+  input.addEventListener("change", () => {
+    if (input.checked) {
+      document
+        .querySelectorAll(
+          `.tier-check[data-name="${input.dataset.name}"]`
+        )
+        .forEach(other => {
+          if (other !== input) {
+            other.checked = false;
+          }
+        });
+    }
 
     calculate();
-
-    document.getElementById("message").textContent =
-      "リセットしました";
   });
+});
 
+/* ダークモード */
 
-// =========================
-// 金額コピー
-// =========================
+const themeBtn = document.getElementById("themeBtn");
 
-document
-  .getElementById("copyBtn")
-  .addEventListener("click", async () => {
+function updateThemeButton() {
+  const dark = document.body.classList.contains("dark");
 
-    const total = calculate();
+  themeBtn.textContent = dark ? "☀️" : "🌙";
+  themeBtn.title = dark ? "ライトモード" : "ダークモード";
+}
 
-    // カンマなしでコピー
-    const text = String(total);
+themeBtn.addEventListener("click", () => {
+  document.body.classList.toggle("dark");
 
-    try {
+  const dark =
+    document.body.classList.contains("dark");
 
-      await navigator.clipboard.writeText(text);
+  localStorage.setItem(
+    "mechanic-theme",
+    dark ? "dark" : "light"
+  );
 
-      document.getElementById("message").textContent =
-        "金額をコピーしました";
+  updateThemeButton();
+});
 
-    } catch {
+if (localStorage.getItem("mechanic-theme") === "dark") {
+  document.body.classList.add("dark");
+}
 
-      document.getElementById("message").textContent =
-        "コピーできませんでした";
-    }
-  });
-
-
-// =========================
-// 性能カスタム
-// 1項目につき1段階のみ
-// =========================
-
-document
-  .querySelectorAll(".tier-check")
-  .forEach(input => {
-
-    input.addEventListener("change", () => {
-
-      if (input.checked) {
-
-        document
-          .querySelectorAll(
-            `.tier-check[data-name="${input.dataset.name}"]`
-          )
-          .forEach(other => {
-
-            if (other !== input) {
-              other.checked = false;
-            }
-
-          });
-      }
-
-      calculate();
-    });
-  });
-
-
-// =========================
-// 初期計算
-// =========================
-
+updateThemeButton();
 calculate();
