@@ -550,3 +550,21 @@ footer{
     flex:0 0 42px!important;
   }
 }
+.page-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:9px 13px;
+  min-height:36px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:#fff;
+  color:var(--text);
+  text-decoration:none;
+  font-size:11px;
+  font-weight:800;
+}
+
+.page-link:hover{
+  background:#f8f9fc;
+}
