@@ -1,0 +1,192 @@
+/* Vehicle Analyzer 専用 */
+.page-link{
+  display:inline-flex;
+  align-items:center;
+  min-height:38px;
+  padding:0 12px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:var(--surface);
+  color:var(--text);
+  text-decoration:none;
+  font-size:11px;
+  font-weight:800;
+}
+.page-link:hover{background:var(--surface2)}
+
+.analyzer-input textarea{
+  width:100%;
+  min-height:145px;
+  resize:vertical;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--surface2);
+  color:var(--text);
+  outline:none;
+  font:13px/1.7 "Noto Sans JP","Yu Gothic",system-ui,sans-serif;
+}
+.analyzer-input textarea:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px #eef0ff;
+}
+body.dark .analyzer-input textarea:focus{
+  box-shadow:0 0 0 3px #292f52;
+}
+
+.analyzer-tools{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  margin-top:7px;
+  color:var(--muted);
+  font-size:10px;
+}
+.small{padding:7px 10px!important}
+
+.counts{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.counts span{
+  padding:7px 11px;
+  border-radius:999px;
+  background:#e9f0ec;
+  color:#267b78;
+  font-size:11px;
+  font-weight:900;
+}
+body.dark .counts span{
+  background:#263a36;
+  color:#6ed0c4;
+}
+
+.analyzer-summary{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:8px;
+}
+.analyzer-summary.empty{display:block}
+
+.need-card{
+  min-height:78px;
+  display:grid;
+  grid-template-columns:40px minmax(0,1fr) auto;
+  align-items:center;
+  gap:8px;
+  padding:9px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--surface2);
+}
+.need-icon{
+  width:40px;
+  height:40px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#ebe8df;
+  font-size:18px;
+}
+body.dark .need-icon{background:#30352f}
+.need-name{
+  font-size:12px;
+  font-weight:900;
+}
+.need-en{
+  margin-top:2px;
+  color:var(--muted);
+  font-size:9px;
+  line-height:1.35;
+}
+.need-count{
+  color:#b94f08;
+  font-size:15px;
+  font-weight:900;
+}
+
+.analyzer-details{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  max-height:650px;
+  overflow:auto;
+  padding-right:2px;
+}
+.custom-card{
+  min-height:175px;
+  padding:11px;
+  border:1px solid var(--line);
+  border-radius:11px;
+  background:var(--surface);
+}
+.custom-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:8px;
+}
+.custom-name{
+  font-size:14px;
+  font-weight:900;
+}
+.custom-category{
+  color:var(--primary);
+  font-size:9px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.custom-value{
+  margin-top:16px;
+  color:var(--muted);
+  font-size:12px;
+  word-break:break-word;
+}
+.required-box{
+  margin-top:9px;
+  padding:9px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--surface2);
+}
+.required-label{
+  color:var(--muted);
+  font-size:9px;
+  font-weight:900;
+}
+.required-name{
+  margin-top:3px;
+  font-size:13px;
+  font-weight:900;
+}
+.required-en{
+  margin-top:2px;
+  color:var(--muted);
+  font-size:9px;
+}
+.empty-state{
+  padding:26px 12px;
+  text-align:center;
+  border:1px dashed var(--line);
+  border-radius:10px;
+  color:var(--muted);
+  font-size:11px;
+}
+
+@media(max-width:1100px){
+  .analyzer-summary{grid-template-columns:repeat(3,1fr)}
+  .analyzer-details{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:800px){
+  .page-link{flex:1;justify-content:center}
+  .analyzer-summary{grid-template-columns:repeat(2,1fr)}
+  .analyzer-details{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:520px){
+  .analyzer-summary,
+  .analyzer-details{grid-template-columns:1fr}
+  .analyzer-tools{align-items:stretch}
+  .analyzer-tools button{flex:0 0 auto}
+}
