@@ -568,3 +568,14 @@ footer{
 .page-link:hover{
   background:#f8f9fc;
 }
+
+/* 車両解析ボタン：ダークモード */
+body.dark .page-link{
+  background:#20243a;
+  color:#f1f3f8;
+  border-color:#363c58;
+}
+
+body.dark .page-link:hover{
+  background:#292f49;
+}
