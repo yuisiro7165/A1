@@ -1,0 +1,860 @@
+*{box-sizing:border-box}
+
+:root{
+  --bg:#f4f6fa;
+  --surface:#fff;
+  --surface2:#f8f9fc;
+  --text:#182033;
+  --muted:#7b8498;
+  --line:#e4e8f0;
+  --primary:#5367f5;
+  --primary-dark:#4052d8;
+  --green:#18a874;
+  --shadow:0 6px 20px rgba(29,42,76,.06);
+}
+
+body.dark{
+  --bg:#11141b;
+  --surface:#1a1f29;
+  --surface2:#202631;
+  --text:#edf1f7;
+  --muted:#929bad;
+  --line:#303746;
+  --primary:#6879ff;
+  --primary-dark:#7b89ff;
+  --green:#37c995;
+  --shadow:0 8px 24px rgba(0,0,0,.22);
+}
+
+html{scroll-behavior:smooth}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Noto Sans JP","Yu Gothic",system-ui,sans-serif;
+  transition:background .2s,color .2s;
+}
+
+button,input{font:inherit}
+button{cursor:pointer}
+
+.app{
+  width:min(1320px,calc(100% - 24px));
+  margin:12px auto 24px;
+}
+
+.topbar{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  box-shadow:var(--shadow);
+  margin-bottom:10px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:11px;
+}
+
+.brand-mark{
+  width:44px;
+  height:44px;
+  border-radius:12px;
+  background:var(--primary);
+  color:#fff;
+  display:grid;
+  place-items:center;
+  font-size:13px;
+  font-weight:900;
+}
+
+.eyebrow{
+  color:var(--primary);
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.15em;
+  margin:0 0 2px;
+}
+
+h1{
+  font-size:21px;
+  margin:0;
+  letter-spacing:-.04em;
+}
+
+.header-actions{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+button{
+  border:0;
+  border-radius:9px;
+  padding:9px 13px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:800;
+  font-size:11px;
+}
+
+button:hover{
+  background:var(--primary-dark);
+}
+
+button:active{
+  transform:scale(.98);
+}
+
+button.ghost{
+  background:var(--surface);
+  color:var(--text);
+  border:1px solid var(--line);
+}
+
+.theme-btn{
+  width:38px;
+  height:38px;
+  padding:0;
+  display:grid;
+  place-items:center;
+  background:var(--surface);
+  color:var(--text);
+  border:1px solid var(--line);
+  font-size:16px;
+}
+
+.theme-btn:hover{
+  background:var(--surface2);
+}
+
+/* サマリー */
+
+.summary{
+  background:linear-gradient(
+    110deg,
+    var(--surface) 0%,
+    var(--surface) 65%,
+    #eef0ff 100%
+  );
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:15px 18px;
+  display:grid;
+  grid-template-columns:1.1fr 1fr auto;
+  align-items:center;
+  gap:12px;
+  box-shadow:var(--shadow);
+  margin-bottom:10px;
+}
+
+body.dark .summary{
+  background:linear-gradient(
+    110deg,
+    var(--surface) 0%,
+    var(--surface) 65%,
+    #20253d 100%
+  );
+}
+
+.total{
+  font-size:38px;
+  line-height:1;
+  font-weight:900;
+  color:var(--primary);
+  letter-spacing:-.05em;
+}
+
+.summary-note{
+  font-size:11px;
+  color:var(--muted);
+  line-height:1.6;
+}
+
+.message{
+  font-size:11px;
+  color:var(--green);
+  text-align:right;
+  min-width:130px;
+}
+
+/* レイアウト */
+
+.workspace{
+  display:grid;
+  grid-template-columns:minmax(0,1.6fr) minmax(340px,.9fr);
+  gap:10px;
+}
+
+.panel{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:15px;
+  padding:14px;
+  box-shadow:var(--shadow);
+  margin-bottom:10px;
+}
+
+.panel-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  margin-bottom:9px;
+}
+
+.panel-head>div{
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+
+.section-no{
+  color:var(--primary);
+  background:#eef0ff;
+  border-radius:6px;
+  padding:4px 6px;
+  font-size:8px;
+  font-weight:900;
+}
+
+body.dark .section-no{
+  background:#292f52;
+}
+
+h2{
+  font-size:15px;
+  margin:0;
+}
+
+.hint{
+  font-size:10px;
+  color:var(--muted);
+}
+
+.panel-head strong{
+  font-size:15px;
+  color:var(--primary);
+  font-weight:900;
+  white-space:nowrap;
+}
+
+/* 性能カスタム */
+
+.tier-table{
+  border:1px solid var(--line);
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.tier-head,
+.tier-row{
+  display:grid;
+  grid-template-columns:1.45fr repeat(5,1fr);
+}
+
+.tier-head{
+  background:var(--surface2);
+  color:var(--muted);
+  font-size:9px;
+  font-weight:900;
+}
+
+.tier-head span{
+  padding:8px 6px;
+  text-align:center;
+  border-right:1px solid var(--line);
+}
+
+.tier-head span:first-child{
+  text-align:left;
+}
+
+.tier-row{
+  min-height:54px;
+  border-top:1px solid var(--line);
+}
+
+.tier-row>span{
+  display:flex;
+  align-items:center;
+  padding:7px 10px;
+  font-size:12px;
+  font-weight:800;
+}
+
+.tier-cell{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-left:1px solid var(--line);
+}
+
+.tier-cell label{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  cursor:pointer;
+}
+
+.tier-cell label:hover{
+  background:var(--surface2);
+}
+
+.tier-cell input,
+.part input[type=checkbox]{
+  appearance:none;
+  width:16px;
+  height:16px;
+  border:2px solid #cbd1df;
+  border-radius:5px;
+  background:var(--surface);
+  position:relative;
+  flex-shrink:0;
+}
+
+.tier-cell input:checked,
+.part input[type=checkbox]:checked{
+  background:var(--primary);
+  border-color:var(--primary);
+}
+
+.tier-cell input:checked:after,
+.part input[type=checkbox]:checked:after{
+  content:"✓";
+  position:absolute;
+  left:2px;
+  top:-3px;
+  color:#fff;
+  font-size:11px;
+  font-weight:900;
+}
+
+.tier-price{
+  font-size:11px;
+  color:var(--text);
+  font-weight:800;
+}
+
+/* 基本作業 */
+
+.basic-list{
+  display:grid;
+  gap:5px;
+}
+
+.basic-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:7px 10px;
+  border:1px solid var(--line);
+  background:var(--surface2);
+  border-radius:9px;
+  font-size:12px;
+  font-weight:700;
+}
+
+.basic-row span{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+.basic-row small{
+  color:var(--text);
+  font-size:13px;
+  font-weight:800;
+}
+
+.qty{
+  width:64px;
+  height:32px;
+  border:1px solid #d8ddea;
+  border-radius:7px;
+  background:var(--surface);
+  color:var(--text);
+  text-align:center;
+  outline:none;
+  font-weight:700;
+}
+
+.qty:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px #eef0ff;
+}
+
+body.dark .qty{
+  border-color:#3b4353;
+}
+
+/* その他パーツ */
+
+.parts-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:7px;
+}
+
+.part{
+  min-height:70px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--surface2);
+  padding:9px;
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:6px;
+  align-items:center;
+}
+
+.part:hover{
+  border-color:#c9d0e0;
+}
+
+.part:has(input:checked){
+  border-color:#b8c0ff;
+  background:#f0f2ff;
+}
+
+body.dark .part:has(input:checked){
+  border-color:#6874d8;
+  background:#252b45;
+}
+
+.part-name{
+  font-size:12px;
+  font-weight:800;
+}
+
+.part-price{
+  font-size:13px;
+  color:var(--text);
+  font-weight:800;
+  margin-top:3px;
+}
+
+.part .qty{
+  width:58px;
+  height:29px;
+  margin-top:5px;
+}
+
+/* フッター */
+
+footer{
+  display:flex;
+  justify-content:space-between;
+  padding:2px 5px;
+  color:#a2a9b8;
+  font-size:9px;
+  letter-spacing:.12em;
+}
+
+/* タブレット */
+
+@media(max-width:1000px){
+  .workspace{
+    grid-template-columns:1fr;
+  }
+
+  .parts-grid{
+    grid-template-columns:repeat(3,1fr);
+  }
+}
+
+/* スマホ */
+
+@media(max-width:700px){
+  .app{
+    width:calc(100% - 14px);
+    margin-top:7px;
+  }
+
+  .topbar{
+    flex-direction:column;
+    align-items:flex-start;
+    padding:12px 14px;
+  }
+
+  .header-actions{
+    width:100%;
+    flex-wrap:wrap;
+  }
+
+  .summary{
+    grid-template-columns:1fr;
+    padding:13px 15px;
+  }
+
+  .message{
+    text-align:left;
+  }
+
+  .tier-table{
+    overflow-x:auto;
+  }
+
+  .tier-head,
+  .tier-row{
+    min-width:650px;
+  }
+
+  .parts-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .total{
+    font-size:34px;
+  }
+}
+
+/* 小さいスマホ */
+
+@media(max-width:420px){
+  .app{
+    width:calc(100% - 8px);
+  }
+
+  .panel{
+    padding:11px;
+  }
+
+  .topbar{
+    padding:11px;
+  }
+
+  .summary{
+    padding:12px;
+  }
+
+  .parts-grid{
+    grid-template-columns:1fr;
+  }
+
+  .header-actions button{
+    flex:1;
+  }
+
+  .theme-btn{
+    flex:0 0 42px!important;
+  }
+}
+
+
+/* 車両解析 統合 */
+.analyzer-input{width:100%;min-height:105px;resize:vertical;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface2);color:var(--text);outline:none;font:12px/1.65 "Noto Sans JP","Yu Gothic",system-ui,sans-serif}
+.analyzer-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px #eef0ff}body.dark .analyzer-input:focus{box-shadow:0 0 0 3px #292f52}
+.analyzer-actions{display:flex;align-items:center;gap:7px;margin-top:8px}.analyzer-actions .ghost{background:var(--surface);color:var(--text);border:1px solid var(--line)}#analyzerStatus{margin-left:auto;color:var(--muted);font-size:10px}
+.analyzer-result{display:none;margin-top:10px}.analyzer-result.show{display:block}.analyzer-result-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;font-size:11px}.analyzer-result-head span{color:var(--muted)}
+.need-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}.need-card{min-height:60px;padding:8px;border:1px solid var(--line);border-radius:9px;background:var(--surface2);display:flex;justify-content:space-between;align-items:center;gap:6px}.need-card b{display:block;font-size:10px}.need-card small{display:block;color:var(--muted);font-size:8px;margin-top:2px}.need-card>strong{color:var(--primary);font-size:13px;white-space:nowrap}
+.analysis-breakdown{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:8px}.analysis-breakdown>div{padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface2);display:flex;justify-content:space-between;font-size:10px}.analysis-breakdown strong{color:var(--primary)}
+@media(max-width:1000px){.need-grid{grid-template-columns:repeat(4,1fr)}}@media(max-width:700px){.need-grid{grid-template-columns:repeat(2,1fr)}.analysis-breakdown{grid-template-columns:1fr}.analyzer-actions{flex-wrap:wrap}#analyzerStatus{width:100%;margin-left:0}}@media(max-width:420px){.need-grid{grid-template-columns:1fr}}
+
+
+/* ===== 06 車両解析 ===== */
+.analyzer-panel{
+  margin-top:0;
+}
+
+.analyzer-input{
+  width:100%;
+  min-height:120px;
+  resize:vertical;
+  padding:11px 12px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--surface2);
+  color:var(--text);
+  outline:none;
+  font:12px/1.65 "Noto Sans JP","Yu Gothic",system-ui,sans-serif;
+}
+
+.analyzer-input:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px #eef0ff;
+}
+
+body.dark .analyzer-input:focus{
+  box-shadow:0 0 0 3px #292f52;
+}
+
+.analyzer-actions{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-top:8px;
+}
+
+.analyzer-status{
+  margin-left:auto;
+  color:var(--muted);
+  font-size:10px;
+}
+
+.analyzer-result{
+  display:none;
+  margin-top:12px;
+}
+
+.analyzer-result.show{
+  display:block;
+}
+
+.analyzer-result-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:8px;
+}
+
+.analyzer-result-head strong{
+  font-size:12px;
+}
+
+.analyzer-counts{
+  display:flex;
+  gap:6px;
+}
+
+.analyzer-counts span{
+  padding:6px 9px;
+  border-radius:999px;
+  background:#e9f0ec;
+  color:#267b78;
+  font-size:9px;
+  font-weight:900;
+}
+
+body.dark .analyzer-counts span{
+  background:#263a36;
+  color:#6ed0c4;
+}
+
+.need-grid{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:6px;
+}
+
+.need-card{
+  min-height:66px;
+  padding:8px 9px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:var(--surface2);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:7px;
+}
+
+.need-card b{
+  display:block;
+  font-size:10px;
+}
+
+.need-card small{
+  display:block;
+  margin-top:2px;
+  color:var(--muted);
+  font-size:8px;
+  line-height:1.35;
+}
+
+.need-card strong{
+  color:var(--primary);
+  font-size:13px;
+  white-space:nowrap;
+}
+
+.analysis-breakdown{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:6px;
+  margin-top:8px;
+}
+
+.analysis-charge{
+  padding:9px 10px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:var(--surface2);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  font-size:10px;
+}
+
+.analysis-charge strong{
+  color:var(--primary);
+  font-size:12px;
+}
+
+.auto-note{
+  color:var(--green);
+  font-size:8px;
+  font-weight:900;
+}
+
+@media(max-width:1000px){
+  .need-grid{grid-template-columns:repeat(4,1fr)}
+}
+
+@media(max-width:700px){
+  .need-grid{grid-template-columns:repeat(2,1fr)}
+  .analysis-breakdown{grid-template-columns:1fr}
+  .analyzer-actions{flex-wrap:wrap}
+  .analyzer-status{width:100%;margin-left:0}
+}
+
+@media(max-width:420px){
+  .need-grid{grid-template-columns:1fr}
+}
+
+
+/* ===== 06 車両解析：作業指示 ===== */
+.instruction-area{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin-top:10px;
+}
+
+.instruction-section{
+  min-width:0;
+}
+
+.instruction-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:7px;
+}
+
+.instruction-title>div{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+.instruction-title strong{
+  font-size:12px;
+}
+
+.instruction-title small{
+  color:var(--muted);
+  font-size:8px;
+}
+
+.instruction-title>span{
+  flex-shrink:0;
+  padding:5px 8px;
+  border-radius:999px;
+  background:#eef0ff;
+  color:var(--primary);
+  font-size:8px;
+  font-weight:900;
+}
+
+body.dark .instruction-title>span{
+  background:#292f52;
+}
+
+.instruction-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:6px;
+}
+
+.instruction-card{
+  min-width:0;
+  padding:9px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:var(--surface2);
+}
+
+.instruction-row{
+  display:grid;
+  grid-template-columns:68px minmax(0,1fr);
+  gap:7px;
+  align-items:start;
+  padding:4px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.instruction-row:last-child{
+  border-bottom:0;
+}
+
+.instruction-label{
+  color:var(--muted);
+  font-size:8px;
+  font-weight:900;
+}
+
+.instruction-value{
+  min-width:0;
+  font-size:10px;
+  font-weight:800;
+  word-break:break-word;
+}
+
+.instruction-choice{
+  color:var(--primary);
+  font-size:14px;
+  font-weight:900;
+}
+
+.instruction-empty{
+  grid-column:1/-1;
+  padding:14px;
+  border:1px dashed var(--line);
+  border-radius:9px;
+  text-align:center;
+  color:var(--muted);
+  font-size:9px;
+}
+
+@media(max-width:1000px){
+  .instruction-area{grid-template-columns:1fr}
+}
+
+@media(max-width:700px){
+  .instruction-grid{grid-template-columns:1fr}
+}
+
+
+/* ===== 車両解析：未登録パーツ ===== */
+.unregistered-section{
+  margin-top:12px;
+  padding-top:10px;
+  border-top:1px solid var(--line);
+}
+
+.unregistered-card{
+  border-style:dashed;
+}
+
+.unregistered-label{
+  color:#b7791f;
+  font-weight:900;
+}
+
+body.dark .unregistered-label{
+  color:#f2b84b;
+}
