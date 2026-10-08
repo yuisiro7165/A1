@@ -140,68 +140,43 @@ function specDisplay(spec){
   if(spec.type==="HEXピッカー") return {text:`${spec.finish||"クラシック"} / ${normalizeHex(spec.hex)||spec.hex||""}`,color:normalizeHex(spec.hex)};
   return {text:"未設定",color:""};
 }
-function contrastLabel(hex){
-  const rgb=hexToRgb(hex);if(!rgb)return '#25313b';
-  return (rgb.r*0.299+rgb.g*0.587+rgb.b*0.114)>168?'#1d2d36':'#ffffff';
-}
 function cardHtml(item){
-  const slots=SLOT_DEFS.map(def=>({def,display:specDisplay(item.colors?.[def.key])}));
-  const main=slots.find(x=>x.def.key==='main')?.display?.color || slots.find(x=>x.display?.color)?.display?.color || '#556e63';
-  const mainHex=normalizeHex(main)||'#556e63';
-  const accentSlots=slots.filter(x=>x.def.key!=='main' && normalizeHex(x.display?.color));
-  const chips=accentSlots.map(x=>`<i style="--chip:${normalizeHex(x.display.color)}" title="${escapeHtml(x.def.label+': '+x.display.text)}"></i>`).join('');
-  const rows=slots.filter(x=>x.display).map(({def,display})=>`<div class="scheme-row"><b>${escapeHtml(def.label)}</b><span>${escapeHtml(display.text)}</span><i class="tiny-swatch${display.color?'':' empty'}"${normalizeHex(display.color)?` style="background:${normalizeHex(display.color)}"`:''}></i></div>`).join('');
+  const colors = SLOT_DEFS.map(def => ({ def, value: specDisplay(item.colors?.[def.key]) }));
+  const bands = colors.map(({def,value}) => {
+    const hex = normalizeHex(value?.color);
+    return `<div class="swatch-cell${hex?"":" no-color"}" ${hex ? `style="--swatch:${hex}"` : ""} title="${escapeHtml(def.label+": "+(value?.text||"未設定"))}"><em>${escapeHtml(def.label)}</em></div>`;
+  }).join("");
+  const rows = colors.filter(({value})=>value).map(({def,value})=>`<div class="scheme-row"><b>${escapeHtml(def.label)}</b><span class="spec-label"><span>${escapeHtml(value.text)}</span><i class="tiny-swatch${value.color?"":" empty"}"${normalizeHex(value.color)?` style="background:${normalizeHex(value.color)}"`:""}></i></span></div>`).join("");
   return `<article class="scheme-card" data-id="${escapeHtml(item.id)}">
-    <div class="swatch-stage" style="--main:${mainHex};--stage-text:${contrastLabel(mainHex)}" role="img" aria-label="${escapeHtml(item.name)}のメインカラー見本">
-      <div class="stage-header"><span>CHROMA / NOTES</span><span>PT.</span></div>
-      <div class="color-disc"></div><div class="accent-wedges">${chips}</div>
-      <div class="stage-footer"><span>MAIN</span><span>${mainHex}</span></div>
-    </div>
-    <div class="scheme-info"><div class="scheme-meta"><span>COLOR RECIPE / PT</span><span>${escapeHtml(item.group)}</span></div>
-      <h4>${escapeHtml(item.name)}</h4><div class="scheme-tag">${item.tag?escapeHtml(item.tag):'カラータグ未設定'}</div>
-      <details class="scheme-details"><summary>組み合わせを見る <span>↘</span></summary>
-        <div class="scheme-rows">${rows||'<div class="scheme-tag">カラー指定なし</div>'}</div>
-        ${item.note?`<div class="scheme-note">${escapeHtml(item.note)}</div>`:''}
-        <div class="scheme-actions"><button class="delete-btn" type="button" data-delete="${escapeHtml(item.id)}">このカラーを削除する ↗</button></div>
-      </details>
-    </div></article>`;
+      <div class="swatch-band" aria-label="カラーサンプル">${bands}</div>
+      <div class="scheme-inner"><div class="scheme-head"><div><h4>${escapeHtml(item.name)}</h4>${item.tag?`<small>${escapeHtml(item.tag)}</small>`:""}</div><span class="group-tag">${escapeHtml(item.group)}</span></div>
+      <div class="scheme-rows">${rows||'<div class="no-slots">カラー指定なし</div>'}</div>
+      ${item.note?`<div class="scheme-note">${escapeHtml(item.note)}</div>`:""}
+      <div class="scheme-actions"><button type="button" class="delete-btn" data-delete="${escapeHtml(item.id)}">削除する</button></div></div>
+    </article>`;
 }
-function filtered(){
-  const q=$('searchInput').value.trim().toLowerCase();
-  const list=schemes.filter(x=>(activeGroup==='すべて'||x.group===activeGroup)&&(!q||`${x.group} ${x.name} ${x.tag||''} ${x.note||''}`.toLowerCase().includes(q)));
-  const sort=$('sortInput').value;
-  return list.sort((a,b)=>sort==='new'?(String(b.createdAt||'').localeCompare(String(a.createdAt||''))||String(a.name).localeCompare(String(b.name),'ja')):String(a.name).localeCompare(String(b.name),'ja'));
-}
-function setupGroups(){
-  const groups=['すべて',...GROUPS];
-  $('categoryTabs').innerHTML=groups.map(g=>`<button type="button" class="tab${g===activeGroup?' active':''}" data-group="${g}" aria-pressed="${g===activeGroup}">${g}</button>`).join('');
-}
+function filtered(){const q=$("searchInput").value.trim().toLowerCase();return schemes.filter(x=>(activeGroup==="すべて"||x.group===activeGroup)&&(!q||`${x.group} ${x.name} ${x.tag||""} ${x.note||""}`.toLowerCase().includes(q)))}
+function setupGroups(){const groups=["すべて",...GROUPS];$("categoryTabs").innerHTML=groups.map(g=>`<button type="button" class="tab${g===activeGroup?" active":""}" data-group="${g}">${g}</button>`).join("")}
 function render(){
-  setupGroups();
-  const list=filtered();
-  $('viewTitle').textContent=activeGroup==='すべて'?'すべてのカラー':activeGroup;
-  $('totalCount').textContent=`${list.length}件`;
-  $('statsTotal').textContent=String(schemes.length).padStart(2,'0');
-  $('statsGroups').textContent=String(GROUPS.filter(g=>schemes.some(s=>s.group===g)).length).padStart(2,'0');
-  const groups=(activeGroup==='すべて'?GROUPS:[activeGroup]).map(g=>[g,list.filter(x=>x.group===g)]).filter(([,items])=>items.length);
-  if(groups.length){
-    $('schemeSections').innerHTML=groups.map(([g,items],i)=>`<section class="category-section"><div class="category-heading"><h3>${escapeHtml(g)} / ${String(i+1).padStart(2,'0')}</h3><span>${items.length} COLLECTIONS</span></div><div class="scheme-grid">${items.map(cardHtml).join('')}</div></section>`).join('');
-  }else{
-    const empty=schemes.length?'条件に合うカラーはありません。':'まだ、何も書かれていないノート。';
-    $('schemeSections').innerHTML=`<div class="empty-state"><div class="empty-art" aria-hidden="true"><i class="e1"></i><i class="e2"></i><i class="e3"></i><i class="e4"></i></div><div class="empty-content"><span class="micro">COLOR JOURNAL / START HERE</span><h3>${empty}</h3><p>${schemes.length?'検索条件を変更するか、新しいカラーを登録してください。':'お気に入りのメイン・サブ・パール・ホイールを記録して、自分だけのカラーライブラリをつくろう。'}</p><button type="button" class="empty-add" data-open-editor>＋ ${schemes.length?'新しいカラーを登録':'最初のカラーを記録する'}</button></div></div>`;
-  }
+  setupGroups();const list=filtered();
+  $("statsTotal").textContent=schemes.length;
+  $("statsGang").textContent=schemes.filter(x=>x.group==="ギャング").length;
+  $("statsStreet").textContent=schemes.filter(x=>x.group==="半グレ").length;
+  $("statsOther").textContent=schemes.filter(x=>x.group==="その他").length;$("viewTitle").textContent=activeGroup==="すべて"?"登録カラー":activeGroup;$("totalCount").textContent=`${list.length}件`;
+  const groups=(activeGroup==="すべて"?GROUPS:[activeGroup]).map(g=>[g,list.filter(x=>x.group===g)]).filter(([,arr])=>arr.length);
+  $("schemeSections").innerHTML=groups.length?groups.map(([g,arr],i)=>`<section class="category-section"><div class="category-heading"><div><div class="eyebrow">CATEGORY ${String(i+1).padStart(2,"0")}</div><h3>${escapeHtml(g)}</h3></div><span>${arr.length}件</span></div><div class="scheme-grid">${arr.map(cardHtml).join("")}</div></section>`).join(""):`<div class="empty-state"><div class="empty-symbol"><i style="background:#5267fb"></i><i style="background:#98a9fa"></i><i style="background:#b4c3ea"></i></div><strong>${$("searchInput").value.trim() || activeGroup !== "すべて" ? "該当するカラーがありません" : "まだカラーが登録されていません"}</strong><p>${$("searchInput").value.trim() || activeGroup !== "すべて" ? "検索ワードや区分を変更してみてください。" : "右側の「カラーを新規登録」から追加できます。"}</p></div>`;
 }
 function clearForm(){const group=$("groupInput").value;$("addForm").reset();$("groupInput").value=group;document.querySelectorAll(".slot-editor").forEach(root=>{root.classList.remove("open");root.querySelector(".slot-open-label").textContent="開く";root.querySelector(".slot-enabled").checked=true;root.querySelector(".slot-type").value="クラシック";renderSlotDynamic(root)})}
 async function addScheme(e){
   e.preventDefault();const name=$("nameInput").value.trim();if(!name)return;
   const colors={};SLOT_DEFS.forEach(def=>{const spec=getSlotState(def.key);if(spec.enabled)colors[def.key]=spec});
   schemes.push({id:newId(),group:$("groupInput").value,name,tag:$("tagInput").value.trim(),note:$("noteInput").value.trim(),colors,createdAt:new Date().toISOString()});
-  await saveData();clearForm();render();$("editorDialog").close();
+  await saveData();clearForm();render();
 }
 async function removeScheme(id){const item=schemes.find(x=>x.id===id);if(!item)return;if(!confirm(`「${item.name}」を削除しますか？`))return;schemes=schemes.filter(x=>x.id!==id);await saveData();render()}
 function exportJson(){const blob=new Blob([JSON.stringify(schemes,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`palette-color-registry-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(a.href)}
 async function importJson(file){const data=JSON.parse(await file.text());if(!Array.isArray(data))throw new Error("配列形式のJSONではありません");schemes=data;await saveData();render()}
-function renderPalette(){const cat=$("paletteCategory").value;const q=$("paletteSearch").value.trim().toLowerCase();const list=PALETTE.filter(x=>(cat==="すべて"||x.category===cat)&&(!q||`${x.number} ${x.name}`.toLowerCase().includes(q)));$("paletteGrid").innerHTML=list.map(x=>`<div class="palette-item"><span class="palette-swatch"${normalizeHex(x.hex)?` style="background:${normalizeHex(x.hex)}"`:''}></span><b>${escapeHtml(x.number)}. ${escapeHtml(x.name)}</b><small>${escapeHtml(x.category)}</small></div>`).join("")}
+function renderPalette(){const cat=$("paletteCategory").value;const q=$("paletteSearch").value.trim().toLowerCase();const list=PALETTE.filter(x=>(cat==="すべて"||x.category===cat)&&(!q||`${x.number} ${x.name}`.toLowerCase().includes(q)));$("paletteGrid").innerHTML=list.map(x=>`<div class="palette-item"><div class="palette-swatch" style="--swatch:${normalizeHex(x.hex)||"#e9edf4"}"></div><b>${escapeHtml(x.number)}. ${escapeHtml(x.name)}</b><small>${escapeHtml(x.category)}</small></div>`).join("")}
 function setupPaletteDialog(){
   $("paletteCategory").innerHTML=["すべて",...PRESET_CATEGORIES].map(x=>`<option>${x}</option>`).join("");
   $("paletteBtn").addEventListener("click",()=>{$("paletteDialog").showModal();renderPalette()});
@@ -209,22 +184,14 @@ function setupPaletteDialog(){
   $("paletteCategory").addEventListener("change",renderPalette);$("paletteSearch").addEventListener("input",renderPalette);
 }
 function setupEvents(){
-  $('openEditorBtn').addEventListener('click',()=>{$('editorDialog').showModal();$('nameInput').focus()});
-  $('bottomAddBtn').addEventListener('click',()=>{$('editorDialog').showModal();$('nameInput').focus()});
-  $('closeEditorBtn').addEventListener('click',()=>$('editorDialog').close());
-  $('editorDialog').addEventListener('click',e=>{if(e.target===$('editorDialog'))$('editorDialog').close()});
-  $('paletteDialog').addEventListener('click',e=>{if(e.target===$('paletteDialog'))$('paletteDialog').close()});
-  $('sortInput').addEventListener('change',render);
-  $('schemeSections').addEventListener('click',e=>{if(e.target.closest('[data-open-editor]')){$('editorDialog').showModal();$('nameInput').focus()}});
-
   $("searchInput").addEventListener("input",render);
   $("categoryTabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)return;activeGroup=b.dataset.group;render()});
   $("addForm").addEventListener("submit",addScheme);$("clearFormBtn").addEventListener("click",clearForm);
   $("schemeSections").addEventListener("click",e=>{const b=e.target.closest("[data-delete]");if(b)removeScheme(b.dataset.delete)});
   $("exportBtn").addEventListener("click",exportJson);$("importInput").addEventListener("change",async e=>{const file=e.target.files?.[0];if(!file)return;try{await importJson(file)}catch(err){alert(`読み込みに失敗しました: ${err.message}`)}e.target.value=""});
-  $("themeBtn").addEventListener("click",()=>{document.body.classList.toggle("light");localStorage.setItem("palette-color-theme",document.body.classList.contains("light")?"light":"dark");$("themeBtn").textContent=document.body.classList.contains("light")?"☾":"☼" });
+  $("themeBtn").addEventListener("click",()=>{document.body.classList.toggle("light");localStorage.setItem("palette-color-theme",document.body.classList.contains("light")?"light":"dark");$("themeBtn").textContent=document.body.classList.contains("light")?"🌙":"☀️"});
 }
 (async function init(){
-  if(localStorage.getItem("palette-color-theme")==="dark")document.body.classList.remove("light");else document.body.classList.add("light");$("themeBtn").textContent=document.body.classList.contains("light")?"☾":"☼";
+  if(localStorage.getItem("palette-color-theme")==="dark")document.body.classList.remove("light");$("themeBtn").textContent=document.body.classList.contains("light")?"🌙":"☀️";
   setupGroups();setupSlotEditors();setupPaletteDialog();setupEvents();await loadData();render();
 })();
