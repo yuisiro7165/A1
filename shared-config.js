@@ -1,3 +1,5 @@
-// Firebase Realtime Database のURLを入れると、全員で同じカラー一覧を共有できます。
-// 例: window.COLOR_SHARED_DB_URL = "https://YOUR-PROJECT-default-rtdb.asia-southeast1.firebasedatabase.app";
-window.COLOR_SHARED_DB_URL = "";
+// Firebase Web configuration; these two values are public client settings, not admin secrets.
+// Firebase Realtime Database URL (PALETTE TOWN project)
+window.COLOR_SHARED_DB_URL = "https://palette-town-16ab6-default-rtdb.firebaseio.com";
+// Firebase Web API key (PALETTE TOWN project)
+window.COLOR_FIREBASE_API_KEY = "AIzaSyByfXimKAQDJeGZukhbILGAFjqWzeL6yx8";

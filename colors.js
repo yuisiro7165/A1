@@ -9,11 +9,21 @@ const SLOT_DEFS = [
 const PICKER_FINISHES = ["クラシック","マット","クローム","金属"];
 const INPUT_TYPES = [...PRESET_CATEGORIES,"RGBピッカー","HEXピッカー"];
 const STORAGE_KEY = "palette-town-color-schemes-v2";
-const DB_URL = String(window.COLOR_SHARED_DB_URL || "").replace(/\/$/, "");
+const DB_URL = String(window.COLOR_SHARED_DB_URL || "").trim().replace(/\/$/, "");
+const FIREBASE_KEY = String(window.COLOR_FIREBASE_API_KEY || "").trim();
+const CLOUD_ENABLED = Boolean(DB_URL && FIREBASE_KEY);
+const SYNC_INTERVAL_MS = 5000;
+const AUTH_KEY = "palette-town-anonymous-auth-v1";
+let authState = null;
+let cloudReady = false;
+let mutationInProgress = false;
+let syncInProgress = false;
+let editId = null;
+let syncTimer = null;
+let showArchived = false;
 const PALETTE = Array.isArray(window.INITIAL_COLORS) ? window.INITIAL_COLORS : [];
 let schemes = [];
 let activeGroup = "すべて";
-let syncTimer = null;
 const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
 const newId = () => (crypto.randomUUID ? crypto.randomUUID() : `scheme-${Date.now()}-${Math.random().toString(36).slice(2)}`);
@@ -23,29 +33,119 @@ function hexToRgb(hex){const h=normalizeHex(hex);if(!h)return null;return {r:par
 function rgbToHex(r,g,b){return `#${[r,g,b].map(v=>clamp(v).toString(16).padStart(2,"0")).join("")}`.toUpperCase()}
 function parseRgb(value){const m=String(value||"").match(/(?:rgb\s*\()?\s*(\d{1,3})\s*[, ]\s*(\d{1,3})\s*[, ]\s*(\d{1,3})\s*\)?/i);return m?{r:clamp(m[1]),g:clamp(m[2]),b:clamp(m[3])}:null}
 function setStatus(text,shared=false){$("syncStatus").textContent=text;$("syncStatus").classList.toggle("shared",shared)}
-async function fetchRemote(){const r=await fetch(`${DB_URL}/colorSchemes.json`,{cache:"no-store"});if(!r.ok)throw new Error(`HTTP ${r.status}`);return r.json()}
-async function putRemote(data){const r=await fetch(`${DB_URL}/colorSchemes.json`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});if(!r.ok)throw new Error(`HTTP ${r.status}`)}
-async function loadData(){
-  if(DB_URL){
-    try{
-      setStatus("共有データを読み込み中…",true);
-      const remote=await fetchRemote();
-      schemes=Array.isArray(remote)?remote:[];
-      setStatus("共有モード / 全員に反映",true);
-      $("storageNote").textContent="共有データベースを使用中です。追加・削除は他の閲覧者にも反映されます。";
-      startSync();return;
-    }catch(e){console.error(e);setStatus("共有DBに接続できません / ローカルモード")}
+function localRecords(){try{const d=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");return Array.isArray(d)?d:[]}catch{return []}}
+function storeLocal(){localStorage.setItem(STORAGE_KEY,JSON.stringify(schemes));setStatus("この端末に保存済み");updateSyncControls()}
+function safeRecords(data){
+  const values=Array.isArray(data)?data:(data&&typeof data==="object"?Object.values(data):[]);
+  return values.filter(x=>x&&typeof x==="object"&&typeof x.id==="string"&&typeof x.name==="string"&&GROUPS.includes(x.group))
+    .sort((a,b)=>GROUPS.indexOf(a.group)-GROUPS.indexOf(b.group)||a.name.localeCompare(b.name,"ja"));
+}
+function isMine(item){return !CLOUD_ENABLED || Boolean(authState?.localId && item?.ownerUid===authState.localId)}
+function updateSyncControls(){
+  $("syncModeTitle").textContent=CLOUD_ENABLED?"みんなのカラー・自動同期":"この端末だけに保存";
+  $("syncModeDescription").textContent=CLOUD_ENABLED
+    ? "登録や閲覧にログインは不要です。カラーは全員と共有され、登録者だけが自分のカラーを編集・削除できます。"
+    : "現在は端末内のみに保存されています。共有するには管理者がFirebaseを一度だけ設定してください。";
+  $("cloudRefreshBtn").hidden=!CLOUD_ENABLED;
+  $("migrateBtn").hidden=!CLOUD_ENABLED||!cloudReady||!authState||!localRecords().length;
+  const saveButton=$("addForm").querySelector('button[type="submit"]');
+  saveButton.disabled=CLOUD_ENABLED&&(!cloudReady||!authState||mutationInProgress);
+  $("showArchivedBtn").hidden=!schemes.some(x=>x.archived&&isMine(x));
+  $("showArchivedBtn").textContent=showArchived?"登録一覧へ戻る":"自分の削除済みを表示";
+}
+function persistAuth(){try{if(authState)localStorage.setItem(AUTH_KEY,JSON.stringify(authState));else localStorage.removeItem(AUTH_KEY)}catch{}}
+function restoreAuth(){try{const a=JSON.parse(localStorage.getItem(AUTH_KEY)||"null");if(a?.refreshToken&&a?.localId)authState=a}catch{}}
+async function firebaseSignInAnonymously(){
+  const res=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${encodeURIComponent(FIREBASE_KEY)}`,{
+    method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({returnSecureToken:true})
+  });
+  if(!res.ok)throw new Error("匿名認証を開始できません。Firebaseの Authentication > 匿名 が有効か確認してください。");
+  const data=await res.json();
+  authState={idToken:data.idToken,refreshToken:data.refreshToken,localId:data.localId,expiresAt:Date.now()+(Number(data.expiresIn)||3600)*1000};
+  persistAuth();
+}
+async function firebaseToken(force=false){
+  if(!authState)throw new Error("自動認証が完了していません。");
+  if(!force&&authState.idToken&&authState.expiresAt>Date.now()+60000)return authState.idToken;
+  const res=await fetch(`https://securetoken.googleapis.com/v1/token?key=${encodeURIComponent(FIREBASE_KEY)}`,{
+    method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},
+    body:new URLSearchParams({grant_type:"refresh_token",refresh_token:authState.refreshToken})
+  });
+  if(!res.ok)throw new Error("この端末の匿名認証を更新できませんでした。管理者に相談してください。");
+  const d=await res.json();authState.idToken=d.id_token;authState.refreshToken=d.refresh_token||authState.refreshToken;
+  authState.expiresAt=Date.now()+(Number(d.expires_in)||3600)*1000;persistAuth();return authState.idToken;
+}
+async function firebaseRequest(method,path,payload,{etag=false,ifMatch=null}={}){
+  for(let attempt=0;attempt<2;attempt++){
+    const token=method==="GET"?null:await firebaseToken(attempt===1);
+    const url=`${DB_URL}/${path}.json${token?`?auth=${encodeURIComponent(token)}`:""}`;
+    const headers={...(payload===undefined?{}:{"Content-Type":"application/json"}),...(etag?{"X-Firebase-ETag":"true"}:{}),...(ifMatch?{"If-Match":ifMatch}:{})};
+    const resp=await fetch(url,{method,cache:"no-store",headers,...(payload===undefined?{}:{body:JSON.stringify(payload)})});
+    if(resp.status===401&&method!=="GET"&&attempt===0)continue;
+    if(!resp.ok){
+      if(resp.status===412)throw new Error("別の画面から先に編集されました。画面を更新してから再編集してください。");
+      if(resp.status===401||resp.status===403)throw new Error("Firebaseのアクセス権限エラーです。DBルールと匿名認証設定を確認してください。");
+      throw new Error(`共有DBとの通信エラー (${resp.status})`);
+    }
+    const result=await resp.json();return etag?{data:result,etag:resp.headers.get("etag")}:result;
   }
-  try{const raw=localStorage.getItem(STORAGE_KEY);schemes=raw?JSON.parse(raw):[]}catch{schemes=[]}
-  $("storageNote").textContent="現在はこの端末だけに保存されるローカルモードです。共有保存先を接続すると全員で同じ一覧を編集できます。";
-  setStatus("ローカル保存モード");
+  throw new Error("認証の更新に失敗しました。");
 }
-async function saveData(){
-  schemes.sort((a,b)=>GROUPS.indexOf(a.group)-GROUPS.indexOf(b.group)||String(a.name).localeCompare(String(b.name),"ja"));
-  if(DB_URL){try{await putRemote(schemes);setStatus("保存済み / 全員に反映",true)}catch(e){console.error(e);setStatus("共有DBへの保存に失敗")}}
-  else{localStorage.setItem(STORAGE_KEY,JSON.stringify(schemes));setStatus("この端末に保存済み")}
+async function refreshCloud(showStatus=false){
+  if(!CLOUD_ENABLED||syncInProgress||mutationInProgress)return;
+  syncInProgress=true;
+  try{
+    if(showStatus)setStatus("共有カラーを読み込み中…",true);
+    const next=safeRecords(await firebaseRequest("GET","colorSchemes"));
+    if(!cloudReady||JSON.stringify(next)!==JSON.stringify(schemes)){schemes=next;render()}
+    cloudReady=true;
+    setStatus(authState?"共有中・約5秒ごとに同期":"共有一覧を表示中・書込準備中",true);
+    $("storageNote").textContent="全員のカラーを共有表示中。自分で登録したカラーは、この端末から編集・削除できます。";
+  }catch(err){cloudReady=false;setStatus("同期エラー / 登録停止中");$("storageNote").textContent=err.message;console.error(err)}
+  finally{syncInProgress=false;updateSyncControls()}
 }
-function startSync(){clearInterval(syncTimer);syncTimer=setInterval(async()=>{try{const remote=await fetchRemote();if(Array.isArray(remote)&&JSON.stringify(remote)!==JSON.stringify(schemes)){schemes=remote;render()}}catch(e){console.warn(e)}},7000)}
+async function loadData(){
+  if(!CLOUD_ENABLED){
+    schemes=safeRecords(localRecords());$("storageNote").textContent="ローカル保存中。同期するには管理者のFirebase設定が必要です。";
+    setStatus(DB_URL||FIREBASE_KEY?"同期設定が未完成":"この端末だけに保存");updateSyncControls();return;
+  }
+  restoreAuth();setStatus("共有データに接続中…");
+  await refreshCloud(true);
+  try{await firebaseToken();}catch(_err){
+    try{if(!authState)await firebaseSignInAnonymously();else throw _err}
+    catch(err){setStatus("閲覧可能 / 登録の自動認証に失敗");$("storageNote").textContent=err.message;console.error(err)}
+  }
+  // Auth is generated silently on first visit and restored across reloads.
+  updateSyncControls();render();
+  clearInterval(syncTimer);
+  syncTimer=setInterval(()=>{if(document.visibilityState!=="hidden")refreshCloud()},SYNC_INTERVAL_MS);
+}
+async function runCloudMutation(callback){
+  if(!cloudReady||!authState){alert("共有DBへの接続または自動認証が完了していません。少し待って再試行してください。");return false}
+  mutationInProgress=true;setStatus("共有カラーを保存中…",true);updateSyncControls();
+  let ok=false;
+  try{await callback();ok=true;setStatus("共有データに保存しました",true)}
+  catch(err){console.error(err);setStatus("保存エラー");alert(`共有への保存に失敗しました：${err.message}`)}
+  finally{mutationInProgress=false;await refreshCloud();updateSyncControls()}
+  return ok;
+}
+function sanitizeImport(record){
+  if(!record||typeof record.name!=="string"||!GROUPS.includes(record.group))return null;
+  const name=record.name.trim().slice(0,80);if(!name)return null;
+  const colors={};for(const d of SLOT_DEFS){
+    const x=record.colors?.[d.key];if(!x?.enabled||!INPUT_TYPES.includes(x.type))continue;
+    colors[d.key]={enabled:true,type:x.type,presetId:String(x.presetId||"").slice(0,100),finish:PICKER_FINISHES.includes(x.finish)?x.finish:"",rgb:String(x.rgb||"").slice(0,40),hex:normalizeHex(x.hex)||""};
+  }
+  return {group:record.group,name,tag:String(record.tag||"").slice(0,60),note:String(record.note||"").slice(0,500),colors};
+}
+function makeOwnedRecord(base){return {...base,id:newId(),ownerUid:authState.localId,archived:false,createdAt:{".sv":"timestamp"},updatedAt:{".sv":"timestamp"}}}
+async function migrateLocalRecords(){
+  const entries=localRecords().map(sanitizeImport).filter(Boolean);
+  if(!entries.length)return;
+  if(!confirm(`この端末内の ${entries.length} 件を、あなたが編集できる共有カラーとして追加しますか？`))return;
+  const ok=await runCloudMutation(async()=>{for(const item of entries.slice(0,50)){const r=makeOwnedRecord(item);await firebaseRequest("PUT",`colorSchemes/${r.id}`,r,{ifMatch:"null_etag"})}});
+  if(ok){localStorage.removeItem(STORAGE_KEY);alert("共有へ移しました。")}
+}
 function presetOptions(category, selected=""){
   return PALETTE.filter(x=>x.category===category).map(x=>`<option value="${escapeHtml(x.id)}" ${x.id===selected?"selected":""}>${escapeHtml(x.number)}. ${escapeHtml(x.name)}</option>`).join("");
 }
@@ -152,30 +252,99 @@ function cardHtml(item){
       <div class="scheme-inner"><div class="scheme-head"><div><h4>${escapeHtml(item.name)}</h4>${item.tag?`<small>${escapeHtml(item.tag)}</small>`:""}</div><span class="group-tag">${escapeHtml(item.group)}</span></div>
       <div class="scheme-rows">${rows||'<div class="no-slots">カラー指定なし</div>'}</div>
       ${item.note?`<div class="scheme-note">${escapeHtml(item.note)}</div>`:""}
-      <div class="scheme-actions"><button type="button" class="delete-btn" data-delete="${escapeHtml(item.id)}">削除する</button></div></div>
+      <div class="scheme-actions">${isMine(item)
+        ? `<button type="button" class="edit-btn" data-edit="${escapeHtml(item.id)}">編集する</button><button type="button" class="delete-btn" data-delete="${escapeHtml(item.id)}">${item.archived?"復元する":"削除する"}</button>`
+        : `<span class="readonly-label">${CLOUD_ENABLED?"ほかの人が登録・閲覧のみ":""}</span>`}</div></div>
     </article>`;
 }
-function filtered(){const q=$("searchInput").value.trim().toLowerCase();return schemes.filter(x=>(activeGroup==="すべて"||x.group===activeGroup)&&(!q||`${x.group} ${x.name} ${x.tag||""} ${x.note||""}`.toLowerCase().includes(q)))}
+function filtered(){const q=$("searchInput").value.trim().toLowerCase();return schemes.filter(x=>(Boolean(x.archived)===showArchived&&(!showArchived||isMine(x)))&&(activeGroup==="すべて"||x.group===activeGroup)&&(!q||`${x.group} ${x.name} ${x.tag||""} ${x.note||""}`.toLowerCase().includes(q)))}
 function setupGroups(){const groups=["すべて",...GROUPS];$("categoryTabs").innerHTML=groups.map(g=>`<button type="button" class="tab${g===activeGroup?" active":""}" data-group="${g}">${g}</button>`).join("")}
 function render(){
   setupGroups();const list=filtered();
-  $("statsTotal").textContent=schemes.length;
-  $("statsGang").textContent=schemes.filter(x=>x.group==="ギャング").length;
-  $("statsStreet").textContent=schemes.filter(x=>x.group==="半グレ").length;
-  $("statsOther").textContent=schemes.filter(x=>x.group==="その他").length;$("viewTitle").textContent=activeGroup==="すべて"?"登録カラー":activeGroup;$("totalCount").textContent=`${list.length}件`;
+  $("statsTotal").textContent=schemes.filter(x=>!x.archived).length;
+  $("statsGang").textContent=schemes.filter(x=>!x.archived&&x.group==="ギャング").length;
+  $("statsStreet").textContent=schemes.filter(x=>!x.archived&&x.group==="半グレ").length;
+  $("statsOther").textContent=schemes.filter(x=>!x.archived&&x.group==="その他").length;$("viewTitle").textContent=showArchived?"自分の削除済み":activeGroup==="すべて"?"登録カラー":activeGroup;$("totalCount").textContent=`${list.length}件`;
   const groups=(activeGroup==="すべて"?GROUPS:[activeGroup]).map(g=>[g,list.filter(x=>x.group===g)]).filter(([,arr])=>arr.length);
   $("schemeSections").innerHTML=groups.length?groups.map(([g,arr],i)=>`<section class="category-section"><div class="category-heading"><div><div class="eyebrow">CATEGORY ${String(i+1).padStart(2,"0")}</div><h3>${escapeHtml(g)}</h3></div><span>${arr.length}件</span></div><div class="scheme-grid">${arr.map(cardHtml).join("")}</div></section>`).join(""):`<div class="empty-state"><div class="empty-symbol"><i style="background:#5267fb"></i><i style="background:#98a9fa"></i><i style="background:#b4c3ea"></i></div><strong>${$("searchInput").value.trim() || activeGroup !== "すべて" ? "該当するカラーがありません" : "まだカラーが登録されていません"}</strong><p>${$("searchInput").value.trim() || activeGroup !== "すべて" ? "検索ワードや区分を変更してみてください。" : "右側の「カラーを新規登録」から追加できます。"}</p></div>`;
 }
-function clearForm(){const group=$("groupInput").value;$("addForm").reset();$("groupInput").value=group;document.querySelectorAll(".slot-editor").forEach(root=>{root.classList.remove("open");root.querySelector(".slot-open-label").textContent="開く";root.querySelector(".slot-enabled").checked=true;root.querySelector(".slot-type").value="クラシック";renderSlotDynamic(root)})}
+function clearForm(){
+  editId=null;const group=$("groupInput").value;$("addForm").reset();$("groupInput").value=group;
+  $("editorHeading").textContent="カラーを新規登録";
+  $("saveColorBtn").textContent="＋ カラーを登録";
+  $("clearFormBtn").textContent="入力をクリア";
+  document.querySelectorAll(".slot-editor").forEach(root=>{
+    root.classList.remove("open");root.querySelector(".slot-open-label").textContent="開く";
+    root.querySelector(".slot-enabled").checked=true;root.querySelector(".slot-type").value="クラシック";renderSlotDynamic(root);
+  });
+}
+function editScheme(id){
+  const item=schemes.find(x=>x.id===id);if(!item||!isMine(item)||item.archived)return;
+  editId=item.id;$("editorHeading").textContent="カラーを編集";$("saveColorBtn").textContent="変更を保存";$("clearFormBtn").textContent="編集をキャンセル";
+  $("groupInput").value=item.group;$("nameInput").value=item.name;$("tagInput").value=item.tag||"";$("noteInput").value=item.note||"";
+  document.querySelectorAll(".slot-editor").forEach(root=>{
+    const x=item.colors?.[root.dataset.slot];const enabled=Boolean(x?.enabled);
+    root.classList.toggle("open",enabled);root.querySelector(".slot-open-label").textContent=enabled?"閉じる":"開く";
+    root.querySelector(".slot-enabled").checked=enabled;root.querySelector(".slot-type").value=INPUT_TYPES.includes(x?.type)?x.type:"クラシック";
+    renderSlotDynamic(root);
+    if(PRESET_CATEGORIES.includes(x?.type))root.querySelector(".preset-select").value=x.presetId||"";
+    else if(x?.type==="RGBピッカー"){
+      root.querySelector(".finish-select").value=x.finish||"クラシック";
+      root.querySelector(".rgb-text").value=x.rgb||"rgb(255,255,255)";
+      root.querySelector(".rgb-color").value=normalizeHex(x.hex)||"#FFFFFF";
+    }else if(x?.type==="HEXピッカー"){
+      root.querySelector(".finish-select").value=x.finish||"クラシック";
+      root.querySelector(".hex-text").value=normalizeHex(x.hex)||"#FFFFFF";
+      root.querySelector(".hex-color").value=normalizeHex(x.hex)||"#FFFFFF";
+    }
+    updateSlotPreview(root);
+  });
+  document.querySelector(".editor-panel").scrollIntoView({behavior:"smooth",block:"start"});
+}
+async function updateCloudRecord(id,change){
+  const path=`colorSchemes/${id}`;
+  const {data:current,etag}=await firebaseRequest("GET",path,undefined,{etag:true});
+  if(!current||!etag||current.ownerUid!==authState?.localId)throw new Error("このカラーを編集する権限がありません。");
+  const next={...current,...change,updatedAt:{".sv":"timestamp"}};
+  await firebaseRequest("PUT",path,next,{ifMatch:etag});
+}
 async function addScheme(e){
   e.preventDefault();const name=$("nameInput").value.trim();if(!name)return;
+  if(name.length>80){alert("カラー名は80文字以内で入力してください");return}
   const colors={};SLOT_DEFS.forEach(def=>{const spec=getSlotState(def.key);if(spec.enabled)colors[def.key]=spec});
-  schemes.push({id:newId(),group:$("groupInput").value,name,tag:$("tagInput").value.trim(),note:$("noteInput").value.trim(),colors,createdAt:new Date().toISOString()});
-  await saveData();clearForm();render();
+  const base={group:$("groupInput").value,name,tag:$("tagInput").value.trim().slice(0,60),note:$("noteInput").value.trim().slice(0,500),colors};
+  if(CLOUD_ENABLED){
+    const currentId=editId;
+    const ok=await runCloudMutation(()=>currentId
+      ? updateCloudRecord(currentId,base)
+      : (async()=>{const item=makeOwnedRecord(base);await firebaseRequest("PUT",`colorSchemes/${item.id}`,item,{ifMatch:"null_etag"})})());
+    if(!ok)return;
+  }else if(editId){
+    const i=schemes.findIndex(x=>x.id===editId);if(i<0)return;
+    schemes[i]={...schemes[i],...base};storeLocal();
+  }else{schemes.push({...base,id:newId(),createdAt:new Date().toISOString()});storeLocal()}
+  clearForm();render();updateSyncControls();
 }
-async function removeScheme(id){const item=schemes.find(x=>x.id===id);if(!item)return;if(!confirm(`「${item.name}」を削除しますか？`))return;schemes=schemes.filter(x=>x.id!==id);await saveData();render()}
+async function removeScheme(id){
+  const item=schemes.find(x=>x.id===id);if(!item||!isMine(item))return;
+  const willArchive=!item.archived;
+  if(!confirm(`「${item.name}」を${willArchive?"削除済みに移動":"復元"}しますか？`))return;
+  if(CLOUD_ENABLED){if(!(await runCloudMutation(()=>updateCloudRecord(item.id,{archived:willArchive}))))return}
+  else{item.archived=willArchive;storeLocal()}
+  if(editId===id)clearForm();render();updateSyncControls();
+}
 function exportJson(){const blob=new Blob([JSON.stringify(schemes,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`palette-color-registry-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(a.href)}
-async function importJson(file){const data=JSON.parse(await file.text());if(!Array.isArray(data))throw new Error("配列形式のJSONではありません");schemes=data;await saveData();render()}
+async function importJson(file){
+  const data=JSON.parse(await file.text());if(!Array.isArray(data))throw new Error("配列形式のJSONではありません");
+  if(data.length>50)throw new Error("一度に取り込めるのは50件までです。JSONを分割してください。");
+  if(CLOUD_ENABLED){
+    if(!cloudReady||!authState)throw new Error("共有DBへの接続を待ってください。");
+    if(!confirm(`${data.length}件を新しい共有カラーとして登録しますか？既存のカラーは上書きされません。`))return;
+    const items=data.map(sanitizeImport).filter(Boolean).map(makeOwnedRecord);
+    if(!(await runCloudMutation(async()=>{for(const item of items)await firebaseRequest("PUT",`colorSchemes/${item.id}`,item,{ifMatch:"null_etag"})})))throw new Error("取り込みが完了しませんでした。重複登録を避けるため一覧を確認してください。");
+  }else{schemes=safeRecords(data);storeLocal();render()}
+  updateSyncControls();
+}
 function renderPalette(){const cat=$("paletteCategory").value;const q=$("paletteSearch").value.trim().toLowerCase();const list=PALETTE.filter(x=>(cat==="すべて"||x.category===cat)&&(!q||`${x.number} ${x.name}`.toLowerCase().includes(q)));$("paletteGrid").innerHTML=list.map(x=>`<div class="palette-item"><div class="palette-swatch" style="--swatch:${normalizeHex(x.hex)||"#e9edf4"}"></div><b>${escapeHtml(x.number)}. ${escapeHtml(x.name)}</b><small>${escapeHtml(x.category)}</small></div>`).join("")}
 function setupPaletteDialog(){
   $("paletteCategory").innerHTML=["すべて",...PRESET_CATEGORIES].map(x=>`<option>${x}</option>`).join("");
@@ -184,11 +353,19 @@ function setupPaletteDialog(){
   $("paletteCategory").addEventListener("change",renderPalette);$("paletteSearch").addEventListener("input",renderPalette);
 }
 function setupEvents(){
+  $("cloudRefreshBtn").addEventListener("click",()=>refreshCloud(true));
+  $("migrateBtn").addEventListener("click",migrateLocalRecords);
+  $("showArchivedBtn").addEventListener("click",()=>{showArchived=!showArchived;render();updateSyncControls()});
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refreshCloud()});
   $("searchInput").addEventListener("input",render);
   $("categoryTabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)return;activeGroup=b.dataset.group;render()});
   $("addForm").addEventListener("submit",addScheme);$("clearFormBtn").addEventListener("click",clearForm);
-  $("schemeSections").addEventListener("click",e=>{const b=e.target.closest("[data-delete]");if(b)removeScheme(b.dataset.delete)});
-  $("exportBtn").addEventListener("click",exportJson);$("importInput").addEventListener("change",async e=>{const file=e.target.files?.[0];if(!file)return;try{await importJson(file)}catch(err){alert(`読み込みに失敗しました: ${err.message}`)}e.target.value=""});
+  $("schemeSections").addEventListener("click",e=>{
+    const edit=e.target.closest("[data-edit]");if(edit){editScheme(edit.dataset.edit);return}
+    const del=e.target.closest("[data-delete]");if(del)removeScheme(del.dataset.delete);
+  });
+  $("exportBtn").addEventListener("click",exportJson);
+  $("importInput").addEventListener("change",async e=>{const file=e.target.files?.[0];if(!file)return;try{await importJson(file)}catch(err){alert(`読み込みに失敗しました: ${err.message}`)}e.target.value=""});
   $("themeBtn").addEventListener("click",()=>{document.body.classList.toggle("light");localStorage.setItem("palette-color-theme",document.body.classList.contains("light")?"light":"dark");$("themeBtn").textContent=document.body.classList.contains("light")?"🌙":"☀️"});
 }
 (async function init(){

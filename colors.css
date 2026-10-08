@@ -19,3 +19,28 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}a{color:inherit;
 @media(max-width:1050px){.workspace{grid-template-columns:minmax(0,1fr) minmax(290px,.72fr)}.metric{padding:0 14px}.scheme-grid{grid-template-columns:1fr}}
 @media(max-width:780px){.workspace{grid-template-columns:1fr}.scheme-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.summary-bar{align-items:flex-start;flex-direction:column;gap:16px}.summary-metrics{width:100%;justify-content:space-around}.metric{flex:1}.metric:first-child{border-left:0}.registry{min-height:380px}.form-top-row{grid-template-columns:1fr 1fr}}
 @media(max-width:590px){.page{width:calc(100% - 16px);margin:8px auto}.topbar{padding:12px;align-items:flex-start;flex-direction:column}.topnav{width:100%;gap:6px}.topnav .btn{flex:1;font-size:10px;padding:7px 9px}.topnav .icon-btn{flex:0 0 39px}.summary-bar{padding:15px 11px}.metric{min-width:0;padding:0 8px}.metric strong{font-size:24px}.metric-total strong{font-size:28px}.metric span{font-size:9px}.scheme-grid{grid-template-columns:1fr}.panel-title h2{font-size:15px}.registry,.editor-panel,.data-panel{padding:12px}.form-top-row{grid-template-columns:1fr}.palette-filter-row{grid-template-columns:1fr}.palette-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Shared sync controls: maintains the uploaded Simple ColorBook appearance. */
+.sync-control{margin-top:13px;padding-top:12px;border-top:1px solid var(--border)}
+.sync-control-heading{display:flex;align-items:center;justify-content:space-between;gap:9px}
+.sync-control-heading strong{font-size:11px}.sync-control-heading .btn{font-size:10px;min-height:30px;padding:5px 8px}
+.sync-mode-info{color:var(--muted);font-size:10px;line-height:1.7;margin:7px 0}
+.sync-login-form{display:grid;gap:9px;margin-top:12px}
+.sync-login-form label{display:grid;gap:4px;font-size:10px;font-weight:750}
+.sync-login-form input{width:100%;min-width:0;border-radius:7px;background:var(--panel-soft);border:1px solid var(--border);color:var(--text);padding:9px}
+.sync-auth-message{font-size:10px;color:var(--danger);margin:0}
+.sync-signed-in{display:flex;align-items:center;justify-content:space-between;gap:7px;margin-top:9px}
+.sync-signed-in small{font-size:10px;color:var(--muted);overflow-wrap:anywhere}
+.sync-signed-in .btn{font-size:10px;padding:6px 9px;min-height:29px}
+.sync-migrate{width:100%;margin-top:9px;font-size:10px}
+.sync-login-form[hidden],.sync-signed-in[hidden],.sync-refresh[hidden],.sync-migrate[hidden]{display:none!important}
+.save-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Anonymous sync, owner-only edit controls */
+.edit-btn{border:1px solid var(--blue);background:var(--blue-pale);color:var(--blue);font-size:10px;font-weight:800;border-radius:6px;padding:6px 12px;cursor:pointer}
+.edit-btn:hover{filter:brightness(.96)}
+.readonly-label{font-size:10px;color:var(--muted)}
+.scheme-actions{gap:9px;align-items:center;justify-content:flex-end}
+.data-extra-tools{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.data-extra-tools .btn{font-size:10px;padding:7px;min-height:30px}
+.data-extra-tools [hidden]{display:none!important}
