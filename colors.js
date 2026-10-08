@@ -21,6 +21,9 @@ let syncInProgress = false;
 let editId = null;
 let syncTimer = null;
 let showArchived = false;
+let authFailure = "";
+let authRetryAfter = 0;
+let authRetryPromise = null;
 const PALETTE = Array.isArray(window.INITIAL_COLORS) ? window.INITIAL_COLORS : [];
 let schemes = [];
 let activeGroup = "すべて";
@@ -59,7 +62,20 @@ async function firebaseSignInAnonymously(){
   const res=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${encodeURIComponent(FIREBASE_KEY)}`,{
     method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({returnSecureToken:true})
   });
-  if(!res.ok)throw new Error("匿名認証を開始できません。Firebaseの Authentication > 匿名 が有効か確認してください。");
+  if(!res.ok){
+    const errorBody=await res.json().catch(()=>({}));
+    const code=String(errorBody?.error?.message||`HTTP_${res.status}`).slice(0,100);
+    const guidance={
+      OPERATION_NOT_ALLOWED:"Firebase Authentication の『匿名』を有効にして保存してください。",
+      ADMIN_ONLY_OPERATION:"Firebase Authentication の『匿名』を有効にしてください。",
+      API_KEY_INVALID:"Firebase Web API Key を確認してください。",
+      INVALID_API_KEY:"Firebase Web API Key を確認してください。",
+      API_KEY_SERVICE_BLOCKED:"APIキーのAPI制限でIdentity Toolkit APIが許可されているか確認してください。",
+      API_KEY_HTTP_REFERRER_BLOCKED:"APIキーの参照元制限にGitHub Pagesのドメインが含まれているか確認してください。",
+      TOO_MANY_ATTEMPTS_TRY_LATER:"アクセス回数制限中です。しばらく待ってください。"
+    };
+    throw new Error(`匿名認証: ${code}。${guidance[code]||"Firebase Authentication とAPIキーの設定を確認してください。"}`);
+  }
   const data=await res.json();
   authState={idToken:data.idToken,refreshToken:data.refreshToken,localId:data.localId,expiresAt:Date.now()+(Number(data.expiresIn)||3600)*1000};
   persistAuth();
@@ -71,9 +87,47 @@ async function firebaseToken(force=false){
     method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},
     body:new URLSearchParams({grant_type:"refresh_token",refresh_token:authState.refreshToken})
   });
-  if(!res.ok)throw new Error("この端末の匿名認証を更新できませんでした。管理者に相談してください。");
+  if(!res.ok){
+    const errorBody=await res.json().catch(()=>({}));
+    const code=String(errorBody?.error?.message||`HTTP_${res.status}`).slice(0,100);
+    const e=new Error(`認証情報の更新に失敗 (${code})`);
+    e.authErrorCode=code;
+    throw e;
+  }
   const d=await res.json();authState.idToken=d.id_token;authState.refreshToken=d.refresh_token||authState.refreshToken;
   authState.expiresAt=Date.now()+(Number(d.expires_in)||3600)*1000;persistAuth();return authState.idToken;
+}
+// 匿名認証に失敗しても、再読み込みなしで再試行できるようにする。
+async function ensureAnonymousAuth(force=false){
+  if(!CLOUD_ENABLED)return false;
+  if(authRetryPromise)return authRetryPromise;
+  if(!force && Date.now()<authRetryAfter)return Boolean(authState?.idToken);
+  authRetryPromise=(async()=>{
+    try{
+      if(authState){
+        try{await firebaseToken();}
+        catch(error){
+          // 明確に無効になった匿名アカウントだけを破棄する。
+          // 一時的な通信障害ではIDを消さず、編集権限を保護する。
+          if(["INVALID_REFRESH_TOKEN","USER_NOT_FOUND","TOKEN_EXPIRED","USER_DISABLED"].includes(error.authErrorCode)){
+            authState=null;persistAuth();
+          }else throw error;
+        }
+      }
+      if(!authState)await firebaseSignInAnonymously();
+      authFailure="";authRetryAfter=0;
+      setStatus("共有中・約5秒ごとに同期",true);
+      return true;
+    }catch(error){
+      authFailure=error instanceof Error?error.message:String(error);
+      authRetryAfter=Date.now()+15000;
+      setStatus("匿名認証エラー・登録停止中");
+      $("storageNote").textContent=`匿名認証に失敗しました：${authFailure} 下の『接続・同期を再試行』を押してください。`;
+      console.error("Palette Town authentication:",error);
+      return false;
+    }finally{authRetryPromise=null;updateSyncControls()}
+  })();
+  return authRetryPromise;
 }
 async function firebaseRequest(method,path,payload,{etag=false,ifMatch=null}={}){
   for(let attempt=0;attempt<2;attempt++){
@@ -99,8 +153,16 @@ async function refreshCloud(showStatus=false){
     const next=safeRecords(await firebaseRequest("GET","colorSchemes"));
     if(!cloudReady||JSON.stringify(next)!==JSON.stringify(schemes)){schemes=next;render()}
     cloudReady=true;
-    setStatus(authState?"共有中・約5秒ごとに同期":"共有一覧を表示中・書込準備中",true);
-    $("storageNote").textContent="全員のカラーを共有表示中。自分で登録したカラーは、この端末から編集・削除できます。";
+    if(authState){
+      setStatus("共有中・約5秒ごとに同期",true);
+      $("storageNote").textContent="全員のカラーを共有表示中。自分で登録したカラーは、この端末から編集・削除できます。";
+    }else if(authFailure){
+      setStatus("匿名認証エラー・登録停止中");
+      $("storageNote").textContent=`カラー一覧は閲覧できますが、登録には匿名認証が必要です：${authFailure} 『接続・同期を再試行』を押してください。`;
+    }else{
+      setStatus("共有一覧を表示中・書込準備中",true);
+      $("storageNote").textContent="匿名認証を準備中です。";
+    }
   }catch(err){cloudReady=false;setStatus("同期エラー / 登録停止中");$("storageNote").textContent=err.message;console.error(err)}
   finally{syncInProgress=false;updateSyncControls()}
 }
@@ -110,15 +172,15 @@ async function loadData(){
     setStatus(DB_URL||FIREBASE_KEY?"同期設定が未完成":"この端末だけに保存");updateSyncControls();return;
   }
   restoreAuth();setStatus("共有データに接続中…");
+  await ensureAnonymousAuth(true);
   await refreshCloud(true);
-  try{await firebaseToken();}catch(_err){
-    try{if(!authState)await firebaseSignInAnonymously();else throw _err}
-    catch(err){setStatus("閲覧可能 / 登録の自動認証に失敗");$("storageNote").textContent=err.message;console.error(err)}
-  }
-  // Auth is generated silently on first visit and restored across reloads.
   updateSyncControls();render();
   clearInterval(syncTimer);
-  syncTimer=setInterval(()=>{if(document.visibilityState!=="hidden")refreshCloud()},SYNC_INTERVAL_MS);
+  syncTimer=setInterval(async()=>{
+    if(document.visibilityState==="hidden")return;
+    if(!authState)await ensureAnonymousAuth();
+    await refreshCloud();
+  },SYNC_INTERVAL_MS);
 }
 async function runCloudMutation(callback){
   if(!cloudReady||!authState){alert("共有DBへの接続または自動認証が完了していません。少し待って再試行してください。");return false}
@@ -353,10 +415,17 @@ function setupPaletteDialog(){
   $("paletteCategory").addEventListener("change",renderPalette);$("paletteSearch").addEventListener("input",renderPalette);
 }
 function setupEvents(){
-  $("cloudRefreshBtn").addEventListener("click",()=>refreshCloud(true));
+  $("cloudRefreshBtn").addEventListener("click",async()=>{
+    await ensureAnonymousAuth(true);
+    await refreshCloud(true);
+  });
   $("migrateBtn").addEventListener("click",migrateLocalRecords);
   $("showArchivedBtn").addEventListener("click",()=>{showArchived=!showArchived;render();updateSyncControls()});
-  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refreshCloud()});
+  document.addEventListener("visibilitychange",async()=>{
+    if(document.visibilityState!=="visible")return;
+    if(!authState)await ensureAnonymousAuth(true);
+    await refreshCloud();
+  });
   $("searchInput").addEventListener("input",render);
   $("categoryTabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)return;activeGroup=b.dataset.group;render()});
   $("addForm").addEventListener("submit",addScheme);$("clearFormBtn").addEventListener("click",clearForm);
