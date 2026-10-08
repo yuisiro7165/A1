@@ -1,107 +1,82 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Palette Town | Color Book</title>
-  <link rel="stylesheet" href="colors.css?v=20261008-2305">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f5fb">
+  <title>Color Book | Palette Town Garage</title>
+  <link rel="stylesheet" href="colors.css?v=simple-20261009-1">
 </head>
-<body>
-  <div class="color-app">
-    <header class="color-topbar">
-      <div class="color-brand">
-        <div class="color-brand-mark">PT</div>
-        <div>
-          <div class="eyebrow">PALETTE TOWN / GARAGE</div>
-          <h1>Color Book</h1>
-        </div>
-      </div>
-      <div class="top-actions">
-        <button class="ghost" type="button" onclick="location.href='index.html'">Mechanic Desk</button>
-        <button id="paletteBtn" class="ghost" type="button">塗装一覧</button>
-        <button id="themeBtn" class="ghost" type="button">🌙</button>
-      </div>
-    </header>
+<body class="light">
+<div class="page">
+  <header class="topbar">
+    <a class="brand" href="colors.html" aria-label="Color Book ホーム">
+      <span class="brand-icon">PT</span>
+      <span><small>PALETTE TOWN / GARAGE</small><strong>Color Book</strong></span>
+    </a>
+    <nav class="topnav" aria-label="メインメニュー">
+      <a href="index.html" class="btn btn-link">Mechanic Desk</a>
+      <button id="paletteBtn" class="btn btn-primary" type="button">塗装一覧</button>
+      <button id="themeBtn" class="btn btn-outline icon-btn" type="button" aria-label="ダークモード切替">🌙</button>
+    </nav>
+  </header>
 
-    <section class="catalog-toolbar">
-      <div class="search-wrap">
-        <input id="searchInput" type="search" placeholder="名称・色タグ・区分を検索">
+  <section class="summary-bar" aria-label="カラー登録状況">
+    <div class="summary-label"><span class="eyebrow">COLOR COLLECTION</span><h1>カラー管理</h1><p>お気に入りの配色を保存・検索できます。</p></div>
+    <div class="summary-metrics">
+      <div class="metric metric-total"><strong id="statsTotal">0</strong><span>登録カラー</span></div>
+      <div class="metric"><strong id="statsGang">0</strong><span>ギャング</span></div>
+      <div class="metric"><strong id="statsStreet">0</strong><span>半グレ</span></div>
+      <div class="metric"><strong id="statsOther">0</strong><span>その他</span></div>
+    </div>
+  </section>
+
+  <main class="workspace">
+    <section class="registry panel" aria-labelledby="registryHeading">
+      <div class="panel-title"><div class="title-group"><span class="step">01</span><h2 id="registryHeading">登録カラー一覧</h2></div><span class="result-count" id="totalCount">0件</span></div>
+      <div class="filter-box">
+        <label class="search" for="searchInput"><span class="search-icon" aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="カラー名・タグ・区分で検索"></label>
+        <div id="categoryTabs" class="category-tabs" aria-label="区分で絞り込む"></div>
       </div>
-      <div class="category-tabs" id="categoryTabs"></div>
-      <div class="sync-status" id="syncStatus">読み込み中…</div>
+      <div class="list-subhead"><span id="viewTitle">すべてのカラー</span><span id="syncStatus" role="status">読み込み中…</span></div>
+      <div id="schemeSections" class="schemes-root"></div>
+      <p class="registry-hint">※ 登録内容は保存モードに応じて、この端末または共有データベースに保存されます。</p>
     </section>
 
-    <main class="catalog-layout">
-      <section class="catalog-main">
-        <div class="catalog-summary">
-          <div>
-            <div class="eyebrow">COLOR REGISTRY</div>
-            <h2 id="viewTitle">登録カラー</h2>
+    <aside class="settings-column">
+      <section class="editor-panel panel" aria-labelledby="editorHeading">
+        <div class="panel-title"><div class="title-group"><span class="step">02</span><h2 id="editorHeading">カラーを新規登録</h2></div></div>
+        <p class="panel-description">カラー名と色の組み合わせを登録できます。</p>
+        <form id="addForm" class="editor-form">
+          <div class="form-top-row">
+            <label>区分<select id="groupInput" required><option value="ギャング">ギャング</option><option value="半グレ">半グレ</option><option value="その他">その他</option></select></label>
+            <label>カラー名 <span class="required">必須</span><input id="nameInput" required placeholder="例：LAZOS"></label>
           </div>
-          <strong id="totalCount">0件</strong>
-        </div>
-        <div id="schemeSections"></div>
-      </section>
-
-      <aside class="editor-panel">
-        <div class="eyebrow">ADD ENTRY</div>
-        <h2>新規カラーを追加</h2>
-        <form id="addForm">
-          <label>区分
-            <select id="groupInput" required>
-              <option value="ギャング">ギャング</option>
-              <option value="半グレ">半グレ</option>
-              <option value="その他">その他</option>
-            </select>
-          </label>
-          <label>名称
-            <input id="nameInput" required placeholder="例: LAZOS">
-          </label>
-          <label>色タグ
-            <input id="tagInput" placeholder="例: 黒色 / 水色 / ピンク">
-          </label>
-
-          <section class="slot-editor-wrap">
-            <div class="slot-editor-heading">
-              <strong>カラー指定</strong>
-              <small>メイン・サブ・パール・ホイールを設定</small>
-            </div>
-            <div id="slotEditors"></div>
-          </section>
-
-          <label>追加詳細（任意）
-            <textarea id="noteInput" rows="4" placeholder="補足事項があれば入力"></textarea>
-          </label>
-          <button class="primary" type="submit">新規追加</button>
-          <button id="clearFormBtn" class="ghost" type="button">入力をクリア</button>
+          <label>色タグ <span class="optional">任意</span><input id="tagInput" placeholder="例：黒色 / 水色 / ピンク"></label>
+          <section class="slot-editor-wrap"><div class="slot-editor-heading"><strong>カラー指定</strong><small>必要な部分だけ設定できます</small></div><div id="slotEditors"></div></section>
+          <label>追加メモ <span class="optional">任意</span><textarea id="noteInput" rows="3" placeholder="カラーについての補足など"></textarea></label>
+          <button type="submit" class="btn btn-primary save-btn">＋ カラーを登録</button>
+          <button id="clearFormBtn" type="button" class="btn btn-outline reset-btn">入力をクリア</button>
         </form>
+      </section>
+      <section class="data-panel panel" aria-labelledby="dataHeading">
+        <div class="panel-title"><div class="title-group"><span class="step">03</span><h2 id="dataHeading">データ管理</h2></div></div>
+        <p class="panel-description">登録カラーをJSONでバックアップ・復元できます。</p>
+        <div class="data-tools"><button id="exportBtn" type="button" class="btn btn-outline">JSONを書き出し</button><label class="file-button btn btn-outline">JSONを読み込み<input id="importInput" type="file" accept="application/json,.json"></label></div>
+        <p id="storageNote" class="storage-note"></p>
+      </section>
+    </aside>
+  </main>
+  <footer class="footer">PALETTE TOWN / GARAGE — COLOR BOOK</footer>
+</div>
 
-        <div class="data-tools">
-          <button id="exportBtn" class="ghost" type="button">JSONを書き出し</button>
-          <label class="file-button">JSONを読み込み<input id="importInput" type="file" accept="application/json,.json"></label>
-        </div>
-        <p class="storage-note" id="storageNote"></p>
-      </aside>
-    </main>
-  </div>
-
-  <dialog id="paletteDialog" class="palette-dialog">
-    <div class="palette-dialog-head">
-      <div>
-        <div class="eyebrow">PAINT REFERENCE</div>
-        <h2>塗装一覧</h2>
-      </div>
-      <button id="closePaletteBtn" class="ghost" type="button">閉じる</button>
-    </div>
-    <div class="palette-filter-row">
-      <select id="paletteCategory"></select>
-      <input id="paletteSearch" type="search" placeholder="塗装名・番号を検索">
-    </div>
-    <div id="paletteGrid" class="palette-grid"></div>
-  </dialog>
-
-  <script src="colors-data.js?v=20261008-2305"></script>
-  <script src="shared-config.js?v=20261008-2305"></script>
-  <script src="colors.js?v=20261008-2305"></script>
+<dialog id="paletteDialog" class="palette-dialog" aria-labelledby="paletteDialogHeading">
+  <header class="palette-dialog-head"><div><span class="eyebrow">PAINT REFERENCE</span><h2 id="paletteDialogHeading">塗装一覧</h2></div><button id="closePaletteBtn" class="btn btn-outline" type="button">閉じる ✕</button></header>
+  <div class="palette-filter-row"><select id="paletteCategory" aria-label="塗装カテゴリー"></select><input id="paletteSearch" type="search" placeholder="塗装名・番号を検索" aria-label="塗装検索"></div>
+  <div id="paletteGrid" class="palette-grid"></div>
+</dialog>
+<script src="colors-data.js?v=20261008-2305"></script>
+<script src="shared-config.js?v=20261008-2305"></script>
+<script src="colors.js?v=simple-20261009-1"></script>
 </body>
 </html>
