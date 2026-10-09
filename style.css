@@ -861,3 +861,71 @@ body.dark .instruction-title>span{
 body.dark .unregistered-badge{
   color:#fbbf24;
 }
+
+/* ── Mechanic Desk: one-tap install progress, light and dark ── */
+button.instruction-card.install-card {
+  --install-bg:var(--surface2);
+  --install-border:var(--line);
+  color:var(--text);
+  background:var(--install-bg);
+  border:2px solid var(--install-border);
+  width:100%;
+  min-height:138px;
+  border-radius:12px;
+  display:block;
+  text-align:left;
+  padding:12px 14px;
+  cursor:pointer;
+  touch-action:manipulation;
+  line-height:1.45;
+  transition:background-color .15s,border-color .15s,box-shadow .15s,transform .15s;
+}
+button.instruction-card.install-card:hover {background:var(--surface);border-color:var(--primary);transform:translateY(-1px)}
+button.instruction-card.install-card:focus-visible{outline:3px solid var(--primary);outline-offset:3px}
+button.instruction-card.install-card:active{transform:scale(.995)}
+.install-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.install-state{font-size:13px;font-weight:900;color:var(--muted)}
+.install-state-symbol{display:grid;place-items:center;border-radius:50%;width:28px;height:28px;background:var(--surface);border:1px solid var(--line);font-size:15px;color:var(--muted)}
+button.instruction-card.install-card.is-installed,
+button.instruction-card.install-card.is-installed:hover{
+  background:#e3f7ec;
+  border-color:#1caa72;
+  box-shadow:0 2px 0 #a6dec2;
+}
+button.instruction-card.install-card.is-installed .install-state,
+button.instruction-card.install-card.is-installed .install-state-symbol {color:#076e48}
+button.instruction-card.install-card.is-installed .install-state-symbol {background:#d2f4e3;border-color:#51bf90}
+button.instruction-card.install-card.is-installed .instruction-value {color:#134e39}
+button.instruction-card.install-card.is-installed .instruction-choice {color:#078054}
+button.instruction-card.install-card.is-installed .instruction-label {color:#3c705f}
+button.instruction-card.install-card.is-installed .instruction-row {border-color:#b3e3cf}
+body.dark button.instruction-card.install-card.is-installed,
+body.dark button.instruction-card.install-card.is-installed:hover{
+  background:#183a32;
+  border-color:#59c8a2;
+  box-shadow:0 2px 0 #164d40;
+}
+body.dark button.instruction-card.install-card.is-installed .install-state,
+body.dark button.instruction-card.install-card.is-installed .install-state-symbol {color:#9df0cb}
+body.dark button.instruction-card.install-card.is-installed .install-state-symbol {background:#24483e;border-color:#4bbd93}
+body.dark button.instruction-card.install-card.is-installed .instruction-value {color:#e5f8ed}
+body.dark button.instruction-card.install-card.is-installed .instruction-choice {color:#80efbe}
+body.dark button.instruction-card.install-card.is-installed .instruction-label {color:#a9d3c0}
+body.dark button.instruction-card.install-card.is-installed .instruction-row {border-color:#31644e}
+@media(max-width:700px){button.instruction-card.install-card{min-height:122px;padding:14px 16px}}
+
+
+/* v4: full-card button, clearly visible toggled state (light and dark) */
+button.install-card { position:relative; cursor:pointer; user-select:none; -webkit-tap-highlight-color:transparent; }
+button.install-card .install-card-hint {margin-left:auto;color:var(--muted);font-size:10px;font-weight:600;}
+button.install-card[aria-pressed="true"],button.install-card[aria-pressed="true"]:hover {
+  background:#c9f1dd !important; border-color:#168f61 !important;
+  box-shadow:inset 0 0 0 1px #168f61, 0 2px 7px rgba(13,102,72,.11);
+}
+button.install-card[aria-pressed="true"] .install-card-hint {color:#087045;}
+body.dark button.install-card[aria-pressed="true"],body.dark button.install-card[aria-pressed="true"]:hover {
+  background:#194c3d !important; border-color:#62deae !important;
+  box-shadow:inset 0 0 0 1px #62deae,0 2px 7px rgba(0,0,0,.2);
+}
+body.dark button.install-card[aria-pressed="true"] .install-card-hint {color:#aaf2d3;}
+@media(max-width:600px){button.install-card .install-card-hint{font-size:9px}}

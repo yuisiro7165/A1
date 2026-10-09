@@ -164,7 +164,6 @@ const categoryOrder = {
   "アンダーネオン":180,
   "タイヤスモーク":190,
   "ニトロパージ":200,
-  "エクストラ":210,
   "未登録":99999
 };
 
@@ -362,11 +361,10 @@ function getCategory(name, detail) {
     "トランク",
     "突力装置",
     "燃料タンク",
-    "エクストラパーツ"
+    "エクストラパーツ",
+    "エクストラ",
+    "外装コスメティックパーツ"
   ];
-
-  if (name === "エクストラ")
-    return "エクストラ";
 
   if (exteriorNames.includes(name))
     return "外装カスタム";
@@ -438,7 +436,7 @@ function parseOrder(text) {
 
 /* 必要アイテム名は、これまで確認できた対応のみ */
 const requiredItemMap = {
-  "外装カスタム":["外装パーツ","Exterior Cosmetics / externals"],
+  "外装カスタム":["外装コスメティックパーツ","Exterior Cosmetics / externals"],
   "カラー":["車両塗装缶","Vehicle Paint Can / paintcan"],
   "バンパー":["バンパーパーツ","Vehicle Bumper / bumper"],
   "スカート":["スカートパーツ","Vehicle Skirts / skirts"],
@@ -500,7 +498,7 @@ function getInstructionChoice(detail) {
   if (parsed.isNull) {
     return {
       numbered: true,
-      numberText: `#${parsed.number}.NULL`,
+      numberText: `#${parsed.number}`,
       description: ""
     };
   }
@@ -593,34 +591,32 @@ function renderInstructions(items) {
   document.getElementById("settingInstructionCount").textContent =
     `${settingItems.length}件`;
 
+  // Each installation item is a full-size, keyboard-accessible toggle button.
   partGrid.innerHTML = partItems.length
-    ? partItems.map(item => {
+    ? partItems.map((item,index) => {
         const choice = getInstructionChoice(item.detail);
-
+        const label = `${getPartDisplayName(item.category)} ${item.name} ${choice.numbered ? choice.numberText : choice.description}`;
         return `
-          <div class="instruction-card install-card">
-            <label class="install-check">
-              <input type="checkbox" class="install-checkbox" aria-label="${escapeHtml(item.name)}を取付済みにする">
-              <span>取付済</span>
-            </label>
-            <div class="instruction-row">
+          <button type="button" class="instruction-card install-card" data-install-index="${index}" aria-pressed="false" aria-label="${escapeHtml(label)}、未取付。押すと取付済みに変更">
+            <span class="install-card-head"><strong class="install-state">未取付</strong><span class="install-card-hint">カードを押して切替</span><span class="install-state-symbol" aria-hidden="true">○</span></span>
+            <span class="instruction-row">
               <span class="instruction-label">パーツ</span>
               <span class="instruction-value">${escapeHtml(getPartDisplayName(item.category))}</span>
-            </div>
-            <div class="instruction-row">
+            </span>
+            <span class="instruction-row">
               <span class="instruction-label">変更項目</span>
               <span class="instruction-value">${escapeHtml(item.name)}</span>
-            </div>
-            <div class="instruction-row">
+            </span>
+            <span class="instruction-row">
               <span class="instruction-label">${choice.numbered ? "選択番号" : "選択内容"}</span>
               <span class="instruction-value instruction-choice">${escapeHtml(choice.numbered ? choice.numberText : choice.description)}</span>
-            </div>
+            </span>
             ${choice.numbered && choice.description ? `
-            <div class="instruction-row">
+            <span class="instruction-row">
               <span class="instruction-label">選択内容</span>
               <span class="instruction-value">${escapeHtml(choice.description)}</span>
-            </div>` : ""}
-          </div>
+            </span>` : ""}
+          </button>
         `;
       }).join("")
     : '<div class="instruction-empty">パーツ項目はありません。</div>';
@@ -644,23 +640,26 @@ function renderInstructions(items) {
       `).join("")
     : '<div class="instruction-empty">カラー項目はありません。</div>';
 
-  // パーツに取付確認チェックを付け、完了したカードの色を変える。
-  const installCheckboxes = [...partGrid.querySelectorAll(".install-checkbox")];
+  // Click or keyboard-operate anywhere on a card; the button controls the whole hit target.
+  const installButtons = [...partGrid.querySelectorAll(".install-card")];
   const updateInstallProgress = () => {
-    const installed = installCheckboxes.filter(input => input.checked).length;
-    const total = installCheckboxes.length;
+    const installed = installButtons.filter(button => button.getAttribute("aria-pressed") === "true").length;
+    const total = installButtons.length;
     document.getElementById("partInstructionCount").textContent =
       total ? `${installed}/${total} 取付済` : "0件";
   };
-
-  installCheckboxes.forEach(input => {
-    input.addEventListener("change", () => {
-      const card = input.closest(".install-card");
-      if (card) card.classList.toggle("is-installed", input.checked);
+  installButtons.forEach(button => {
+    const baseLabel = button.getAttribute("aria-label").replace(/、未取付。押すと取付済みに変更$/, "");
+    button.addEventListener("click", () => {
+      const next = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(next));
+      button.classList.toggle("is-installed", next);
+      button.querySelector(".install-state").textContent = next ? "取付済" : "未取付";
+      button.querySelector(".install-state-symbol").textContent = next ? "✓" : "○";
+      button.setAttribute("aria-label", `${baseLabel}、${next ? "取付済。押すと未取付に変更" : "未取付。押すと取付済みに変更"}`);
       updateInstallProgress();
     });
   });
-
   updateInstallProgress();
   renderUnregistered(unregisteredItems);
 }
@@ -732,7 +731,7 @@ function analyzeVehicleOrder() {
       <div class="need-card">
         <div>
           <b>${escapeHtml(item.name)}</b>
-          <small>${escapeHtml(item.sub)}</small>
+          
         </div>
         <strong>×${item.count}</strong>
       </div>
