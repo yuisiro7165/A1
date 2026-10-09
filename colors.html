@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f3f5fb">
   <title>Color Book | Palette Town Garage</title>
-  <link rel="stylesheet" href="colors.css?v=authretry-20261009-2">
+  <link rel="stylesheet" href="colors.css?v=syncdiag-20261009-5">
 </head>
 <body class="light">
 <div class="page">
@@ -55,14 +55,15 @@
           <label>色タグ <span class="optional">任意</span><input id="tagInput" placeholder="例：黒色 / 水色 / ピンク"></label>
           <section class="slot-editor-wrap"><div class="slot-editor-heading"><strong>カラー指定</strong><small>必要な部分だけ設定できます</small></div><div id="slotEditors"></div></section>
           <label>追加メモ <span class="optional">任意</span><textarea id="noteInput" rows="3" placeholder="カラーについての補足など"></textarea></label>
+          <p id="registrationHelp" class="registration-help" role="alert" hidden>共有サービスへの接続を確認しています。</p>
+          <button type="button" id="formRetryBtn" class="btn btn-outline form-retry" hidden>↻ 接続を再試行</button>
           <button type="submit" id="saveColorBtn" class="btn btn-primary save-btn">＋ カラーを登録</button>
+          <p id="saveFailure" class="registration-help" role="alert" hidden></p>
           <button id="clearFormBtn" type="button" class="btn btn-outline reset-btn">入力をクリア</button>
         </form>
       </section>
       <section class="data-panel panel" aria-labelledby="dataHeading">
-        <div class="panel-title"><div class="title-group"><span class="step">03</span><h2 id="dataHeading">データ管理</h2></div></div>
-        <p class="panel-description">登録カラーをJSONでバックアップ・読み込みできます。共有では新規データとして追加します。</p>
-        <div class="data-tools"><button id="exportBtn" type="button" class="btn btn-outline">JSONを書き出し</button><label class="file-button btn btn-outline">JSONを読み込み<input id="importInput" type="file" accept="application/json,.json"></label></div>
+        <div class="panel-title"><div class="title-group"><span class="step">03</span><h2 id="dataHeading">共有ステータス</h2></div></div>
         <p id="storageNote" class="storage-note"></p>
         <section class="sync-control" aria-label="自動同期">
           <div class="sync-control-heading"><strong id="syncModeTitle">みんなのカラー・自動同期</strong><button type="button" id="cloudRefreshBtn" class="btn btn-outline sync-refresh" hidden>↻ 接続・同期を再試行</button></div>
@@ -81,7 +82,7 @@
   <div id="paletteGrid" class="palette-grid"></div>
 </dialog>
 <script src="colors-data.js?v=20261008-2305"></script>
-<script src="shared-config.js?v=authretry-20261009-2"></script>
-<script src="colors.js?v=authretry-20261009-2"></script>
+<script src="shared-config.js?v=syncdiag-20261009-5"></script>
+<script src="colors.js?v=syncdiag-20261009-5"></script>
 </body>
 </html>
