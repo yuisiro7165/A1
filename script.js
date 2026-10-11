@@ -444,7 +444,7 @@ const requiredItemMap = {
   "ボンネット":["フードパーツ","Vehicle Hood / hood"],
   "ルーフ":["ルーフパーツ","Vehicle Roof / roof"],
   "マフラー":["エグゾーストパーツ","Vehicle Exhaust / exhaust"],
-  "内装カスタム":["内装パーツ","Internal Cosmetics / internals"],
+  "内装カスタム":["内装コスメティックパーツ","Internal Cosmetics / internals"],
   "リバリー":["リバリーロール","Livery Roll / livery"],
   "ロールケージ":["ロールケージ","Roll Cage / rollcage"],
   "シートカラー":["座席装飾パーツ","Seat Cosmetics / seat"],
