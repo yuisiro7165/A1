@@ -929,3 +929,71 @@ body.dark button.install-card[aria-pressed="true"],body.dark button.install-card
 }
 body.dark button.install-card[aria-pressed="true"] .install-card-hint {color:#aaf2d3;}
 @media(max-width:600px){button.install-card .install-card-hint{font-size:9px}}
+
+/* 善良市民証明書の料金表示：ライト / ダーク両方に対応 */
+.summary {
+  grid-template-columns:minmax(265px,1.22fr) minmax(190px,1fr) minmax(130px,auto);
+  align-items:center;
+  gap:18px;
+}
+.bill-amounts {display:flex;flex-direction:column;gap:11px;min-width:0;}
+.bill-line .eyebrow {margin-bottom:5px;}
+button.amount-click {
+  display:block;
+  width:fit-content;
+  max-width:100%;
+  border:0;
+  padding:5px 8px 5px 0;
+  border-radius:7px;
+  background:transparent!important;
+  box-shadow:none;
+  text-align:left;
+  cursor:copy;
+  touch-action:manipulation;
+  font-variant-numeric:tabular-nums;
+  color:var(--primary);
+  transform:none!important;
+  transition:color .16s ease,opacity .16s ease;
+}
+button.amount-click:hover {color:var(--primary-dark);opacity:.8;}
+button.amount-click:active {opacity:.6;}
+button.amount-click:focus-visible {outline:3px solid var(--primary);outline-offset:3px;}
+.copy-assist {display:block;font-size:10px;color:var(--muted);margin-top:1px;}
+.certificate-bill {border-top:1px solid var(--line);padding-top:11px;}
+.certificate-title {
+  display:flex;align-items:center;flex-wrap:wrap;gap:8px;
+  color:var(--text);font-size:12px;font-weight:800;
+}
+.certificate-rate {
+  display:inline-block;padding:3px 8px;border-radius:100px;
+  background:#e4f6ee;color:#126547;font-size:10px;white-space:nowrap;
+}
+button.discounted-total {
+  margin-top:3px;
+  font-size:clamp(25px,2.75vw,32px);line-height:1.18;
+  letter-spacing:-.04em;
+  font-weight:900;
+  color:#12865f;
+}
+button.discounted-total:hover {color:#0b674a;}
+.discount-savings {display:block;margin-top:1px;font-size:10px;color:var(--green);}
+.summary-note strong {color:var(--text);}
+.summary-notice {font-size:10px;}
+body.dark .certificate-rate {background:#203d33;color:#8ef1c1;}
+body.dark button.discounted-total {color:#7ee4b2;}
+body.dark button.discounted-total:hover {color:#a9f4cc;}
+@media(max-width:1000px) {
+ .summary {grid-template-columns:minmax(230px,1.3fr) minmax(170px,1fr);}
+ .summary .message {grid-column:1/-1;text-align:left;min-height:0;}
+}
+@media(max-width:700px) {
+ .summary {grid-template-columns:1fr;gap:12px;}
+ .summary .message {grid-column:auto;}
+ .summary-note {border-top:1px solid var(--line);padding-top:11px;}
+}
+/* スマホ：性能カスタムの表だけを横スクロールし、ページ全体は広げない */
+.workspace > *, .panel.performance, .panel.other, .analyzer-panel, .side-stack {min-width:0;}
+.tier-table {max-width:100%; min-width:0;}
+@media(max-width:700px) {
+ .performance .tier-table {overflow-x:auto;overscroll-behavior-x:contain;}
+}

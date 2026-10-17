@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Palette Town | Mechanic Desk</title>
-  <link rel="stylesheet" href="style.css?v=exterior-toggle-20261009-4">
+  <link rel="stylesheet" href="style.css?v=citizen-discount-20261017-1">
 </head>
 <body>
   <div class="app">
@@ -21,23 +21,36 @@
       <div class="header-actions">
         <button type="button" onclick="location.href='colors.html?v=anonymous-safe-20261009-1'">カラー</button>
         <button id="themeBtn" class="theme-btn" title="ダークモード切替">🌙</button>
-        <button id="copyBtn">金額をコピー</button>
         <button id="resetBtn" class="ghost">リセット</button>
       </div>
     </header>
 
     <section class="summary">
-      <div>
-        <p class="eyebrow">CURRENT BILL</p>
-        <div class="total" id="total">¥0</div>
+      <div class="bill-amounts">
+        <div class="bill-line">
+          <p class="eyebrow">CURRENT BILL / 通常料金</p>
+          <button type="button" class="amount-click total" id="total"
+            title="通常料金をコピー" aria-label="通常料金0円をコピー">¥0</button>
+          <span class="copy-assist">金額を押してコピー <span aria-hidden="true">⧉</span></span>
+        </div>
+        <div class="certificate-bill">
+          <div class="certificate-title">
+            <span>善良市民証明書あり</span>
+            <span class="certificate-rate">対象料金 10% OFF</span>
+          </div>
+          <button type="button" class="amount-click discounted-total" id="discountTotal"
+            title="証明書割引後の金額をコピー" aria-label="善良市民証明書適用後0円をコピー">¥0</button>
+          <span class="discount-savings" id="discountSavings">割引額 ¥0</span>
+        </div>
       </div>
-
       <div class="summary-note">
-        選択した作業・パーツの料金を<br>
-        リアルタイムで集計します
+        選択した作業・パーツをリアルタイム集計<br>
+        <strong>10%割引の対象</strong><br>
+        性能・外装カスタム／塗装<br>
+        アーマー／ターボ／ニトロ新規<br>
+        <span class="summary-notice">※その他の作業・パーツは割引対象外</span>
       </div>
-
-      <div class="message" id="message"></div>
+      <div class="message" id="message" role="status" aria-live="polite"></div>
     </section>
 
     <main class="workspace">
@@ -116,7 +129,7 @@
                 カスタム作業
                 <small>¥200,000 / 件</small>
               </span>
-              <input id="customQty" type="number" min="0" value="0" data-price="200000" class="qty">
+              <input id="customQty" type="number" min="0" value="0" data-price="200000" data-discount-eligible="true" class="qty">
             </label>
           </div>
         </section>
@@ -136,7 +149,7 @@
                 塗装（一か所）
                 <small>¥100,000 / 件</small>
               </span>
-              <input id="paintQty" type="number" min="0" value="0" data-price="100000" class="qty">
+              <input id="paintQty" type="number" min="0" value="0" data-price="100000" data-discount-eligible="true" class="qty">
             </label>
           </div>
         </section>
@@ -252,6 +265,6 @@
 
   </div>
 
-  <script src="script.js?v=interior-cosmetic-20261011-1"></script>
+  <script src="script.js?v=citizen-discount-20261017-1"></script>
 </body>
 </html>

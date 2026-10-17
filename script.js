@@ -51,6 +51,7 @@ for (const [name, prices] of Object.entries(tierData)) {
       input.type = "checkbox";
       input.className = "tier-check";
       input.dataset.price = prices[i];
+      input.dataset.discountEligible = "true";
       input.dataset.name = name;
       input.dataset.tier = i + 1;
 
@@ -74,6 +75,7 @@ for (const [name, prices] of Object.entries(tierData)) {
 
 const partsGrid = document.getElementById("partsGrid");
 
+const certificateEligibleParts = new Set(["アーマー", "ターボ", "ニトロ新規"]);
 for (const [name, price, hasQty] of parts) {
   const card = document.createElement("div");
   card.className = "part";
@@ -84,14 +86,14 @@ for (const [name, price, hasQty] of parts) {
       <div class="part-price">${yen(price)}${hasQty ? " / 個" : ""}</div>
       ${
         hasQty
-          ? `<input type="number" min="0" value="0" class="qty" data-price="${price}">`
+          ? `<input type="number" min="0" value="0" class="qty" data-price="${price}" data-discount-eligible="${certificateEligibleParts.has(name)}">`
           : ""
       }
     </div>
     ${
       hasQty
         ? ""
-        : `<input type="checkbox" class="part-check" data-price="${price}">`
+        : `<input type="checkbox" class="part-check" data-price="${price}" data-discount-eligible="${certificateEligibleParts.has(name)}">`
     }
   `;
 
@@ -102,22 +104,37 @@ for (const [name, price, hasQty] of parts) {
    合計計算
 ========================= */
 
-function calculate() {
+// 証明書対象のみを10%割引。対象外料金には割引を適用しない。
+function getChargeBreakdown() {
   let total = 0;
-
+  let eligibleTotal = 0;
+  const addCharge = (input, quantity) => {
+    const price = Number(input.dataset.price);
+    if (!Number.isFinite(price) || price < 0) return;
+    const amount = price * quantity;
+    total += amount;
+    if (input.dataset.discountEligible === "true") eligibleTotal += amount;
+  };
   document.querySelectorAll(".qty").forEach(input => {
     const quantity = Math.max(0, Number(input.value) || 0);
-    total += quantity * Number(input.dataset.price);
+    if (Number.isFinite(quantity)) addCharge(input, quantity);
   });
+  document.querySelectorAll(".tier-check:checked, .part-check:checked")
+    .forEach(input => addCharge(input, 1));
+  const savings = Math.round(eligibleTotal * 0.10);
+  return { total, eligibleTotal, savings, discountedTotal: total - savings };
+}
 
-  document
-    .querySelectorAll(".tier-check:checked, .part-check:checked")
-    .forEach(input => {
-      total += Number(input.dataset.price);
-    });
-
-  document.getElementById("total").textContent = yen(total);
-  return total;
+function calculate() {
+  const amounts = getChargeBreakdown();
+  const normalButton = document.getElementById("total");
+  const discountButton = document.getElementById("discountTotal");
+  normalButton.textContent = yen(amounts.total);
+  discountButton.textContent = yen(amounts.discountedTotal);
+  document.getElementById("discountSavings").textContent = `割引額 ${yen(amounts.savings)}`;
+  normalButton.setAttribute("aria-label", `通常料金${yen(amounts.total)}をコピー`);
+  discountButton.setAttribute("aria-label", `善良市民証明書適用後${yen(amounts.discountedTotal)}をコピー`);
+  return amounts.total;
 }
 
 document.addEventListener("input", calculate);
@@ -850,17 +867,34 @@ document.getElementById("resetBtn").addEventListener("click", () => {
     "リセットしました";
 });
 
-document.getElementById("copyBtn").addEventListener("click", async () => {
-  const total = calculate();
-
+// 表示金額をクリックすると、その金額の数値だけをコピーする。
+async function copyAmount(amount, label) {
+  const raw = String(amount);
   try {
-    await navigator.clipboard.writeText(String(total));
-    document.getElementById("message").textContent =
-      "金額をコピーしました";
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(raw);
+    } else {
+      const temporary = document.createElement("textarea");
+      temporary.value = raw;
+      temporary.style.position = "fixed";
+      temporary.style.opacity = "0";
+      document.body.appendChild(temporary);
+      temporary.select();
+      const ok = document.execCommand("copy");
+      temporary.remove();
+      if (!ok) throw new Error("clipboard unavailable");
+    }
+    document.getElementById("message").textContent = `${label} ${yen(amount)} をコピーしました`;
   } catch {
-    document.getElementById("message").textContent =
-      "コピーできませんでした";
+    document.getElementById("message").textContent = "コピーできませんでした。ブラウザのコピー権限を確認してください";
   }
+}
+
+document.getElementById("total").addEventListener("click", () => {
+  copyAmount(getChargeBreakdown().total, "通常料金");
+});
+document.getElementById("discountTotal").addEventListener("click", () => {
+  copyAmount(getChargeBreakdown().discountedTotal, "証明書割引後");
 });
 
 /* =========================
