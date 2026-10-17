@@ -156,6 +156,99 @@ document.querySelectorAll(".tier-check").forEach(input => {
 });
 
 /* =========================
+   フルカス：指定の性能段階＋アーマー＋ターボ＋ニトロ新規（1個）。
+   サスペンションは対象外（個別の選択状態を保持）。
+   それ以外の性能項目は、選択できる最高T。
+   基本作業・外装・塗装・他のパーツには影響しない。
+========================= */
+const fullCustomBtn = document.getElementById("fullCustomBtn");
+const fullCustomTierPreset = Object.freeze({
+  "エンジン": 4,
+  "トランスミッション": 3,
+  "ブレーキ": 3,
+  "オイルポンプ": 3,
+  "ドライブシャフト": 3,
+  "シリンダーヘッド": 3,
+  "燃料タンク": 3,
+  "バッテリーケーブル": 3
+});
+const fullCustomParts = Object.freeze(["アーマー", "ターボ"]);
+const fullCustomNitroName = "ニトロ新規";
+const fullCustomNitroQty = 1;
+
+function getFullCustomNitroInput() {
+  const card = Array.from(document.querySelectorAll("#partsGrid .part"))
+    .find(part => part.querySelector(".part-name")?.textContent.trim() === fullCustomNitroName);
+  return card ? card.querySelector(".qty") : null;
+}
+
+function getFullCustomPartInputs() {
+  return Array.from(document.querySelectorAll("#partsGrid .part"))
+    .filter(card => fullCustomParts.includes(card.querySelector(".part-name")?.textContent.trim()))
+    .map(card => card.querySelector(".part-check"))
+    .filter(Boolean);
+}
+
+function isFullCustomSelected() {
+  const performanceReady = Object.entries(fullCustomTierPreset).every(([name, tier]) => {
+    return Array.from(document.querySelectorAll(".tier-check")).some(input =>
+      input.dataset.name === name && Number(input.dataset.tier) === tier && input.checked
+    );
+  });
+  const partInputs = getFullCustomPartInputs();
+  const nitro = getFullCustomNitroInput();
+  return performanceReady && partInputs.length === fullCustomParts.length &&
+    partInputs.every(input => input.checked) &&
+    nitro !== null && Number(nitro.value) === fullCustomNitroQty;
+}
+
+function updateFullCustomButton() {
+  const active = isFullCustomSelected();
+  fullCustomBtn.setAttribute("aria-pressed", String(active));
+  fullCustomBtn.classList.toggle("is-active", active);
+  fullCustomBtn.textContent = active ? "✓ フルカス解除" : "⚡ フルカス";
+  fullCustomBtn.title = active
+    ? "フルカス対象の性能8項目・アーマー・ターボ・ニトロ新規を解除します（サスペンションはそのまま）"
+    : "エンジンT4・トランスミッションT3・ブレーキT3・その他性能最高T、アーマー・ターボ・ニトロ新規1個を選択（サスペンション除外）";
+}
+
+fullCustomBtn.addEventListener("click", () => {
+  const clearPreset = isFullCustomSelected();
+
+  document.querySelectorAll(".tier-check").forEach(input => {
+    const targetTier = fullCustomTierPreset[input.dataset.name];
+    // サスペンションは選択・解除とも行わず、個別の状態を保持する。
+    if (targetTier === undefined) return;
+    input.checked = !clearPreset && Number(input.dataset.tier) === targetTier;
+  });
+  getFullCustomPartInputs().forEach(input => {
+    input.checked = !clearPreset;
+  });
+  const nitro = getFullCustomNitroInput();
+  if (nitro) nitro.value = clearPreset ? "0" : String(fullCustomNitroQty);
+
+  updateFullCustomButton();
+  calculate();
+  document.getElementById("message").textContent = clearPreset
+    ? "フルカス対象の性能8項目・アーマー・ターボ・ニトロ新規を解除しました（サスペンションは変更なし）"
+    : "エンジンT4／ブレーキT3／トランスミッションT3＋その他性能最高T・アーマー・ターボ・ニトロ新規1個を選択しました（サスペンション対象外）";
+});
+
+// 個別操作やアーマー・ターボ・ニトロ新規の変更があれば、押下状態も更新する。
+document.querySelectorAll(".tier-check").forEach(input =>
+  input.addEventListener("change", updateFullCustomButton)
+);
+getFullCustomPartInputs().forEach(input =>
+  input.addEventListener("change", updateFullCustomButton)
+);
+const nitroInput = getFullCustomNitroInput();
+if (nitroInput) {
+  nitroInput.addEventListener("input", updateFullCustomButton);
+  nitroInput.addEventListener("change", updateFullCustomButton);
+}
+updateFullCustomButton();
+
+/* =========================
    車両解析
    order-parser(2).js の分類ロジックをベースに使用
 ========================= */
@@ -862,6 +955,7 @@ document.getElementById("resetBtn").addEventListener("click", () => {
   document.getElementById("analyzerStatus").textContent = "入力待ち";
   document.getElementById("analyzerResult").classList.remove("show");
 
+  updateFullCustomButton();
   calculate();
   document.getElementById("message").textContent =
     "リセットしました";

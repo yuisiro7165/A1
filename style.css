@@ -997,3 +997,34 @@ body.dark button.discounted-total:hover {color:#a9f4cc;}
 @media(max-width:700px) {
  .performance .tier-table {overflow-x:auto;overscroll-behavior-x:contain;}
 }
+
+/* 性能カスタム：一括フルカス（両テーマ対応） */
+.performance-quick {
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  gap:9px;
+}
+button.full-custom-btn {
+  white-space:nowrap;
+  border:1px solid var(--primary);
+  background:var(--primary);
+  color:#fff;
+  border-radius:9px;
+  min-height:37px;
+  padding:9px 13px;
+  font-size:12px;
+  font-weight:800;
+  touch-action:manipulation;
+}
+button.full-custom-btn:hover { background:var(--primary-dark); }
+button.full-custom-btn:focus-visible {outline:3px solid var(--primary);outline-offset:3px;}
+button.full-custom-btn.is-active {background:#e7f5ef;border-color:#77c8a3;color:#0c6948;}
+button.full-custom-btn.is-active:hover {background:#d7eee3;}
+body.dark button.full-custom-btn.is-active {background:#204136;border-color:#478f75;color:#a4f4c9;}
+body.dark button.full-custom-btn.is-active:hover {background:#285341;}
+@media(max-width:700px){
+  .performance .panel-head {align-items:flex-start;}
+  .performance-quick .hint {display:none;}
+}
