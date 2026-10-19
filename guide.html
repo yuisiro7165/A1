@@ -3,8 +3,10 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>パーツガイド・ホイール診断 | PALETTE TOWN</title>
-<link rel="stylesheet" href="guide.css?v=20261019-simple-v2">
-<script src="guide.js?v=20261019-simple-v2" defer></script>
+<link rel="stylesheet" href="guide.css?v=live-checker-20261020-2">
+<link rel="stylesheet" href="guide-filters.css?v=live-checker-20261020-2">
+<script src="guide.js?v=live-checker-20261020-2" defer></script>
+<script src="guide-filters.js?v=live-checker-20261020-2" defer></script>
   <link rel="stylesheet" href="theme-icons.css?v=20261020-01">
 </head>
 <body>
@@ -37,27 +39,41 @@
   </div>
 </section>
 
-<section id="diagnostic" class="section-block">
-  <div class="section-head"><div><span class="overline">02 / 診断</span><h2>お悩みチェッカー</h2><p>相談内容を選ぶと、おすすめのホイール候補を更新します。</p></div><span class="section-note">データに基づく参考診断</span></div>
-  <div class="diagnostic-grid"><form class="diagnostic-form" id="diagnosticForm" autocomplete="off">
-    <div class="step"><div class="step-heading"><b>1</b><span>どんな悩みがありますか？</span></div><div class="choice-grid" id="issueChoices">
-      <label class="choice"><input type="radio" name="issue" value="under" checked><span><b>曲がりにくい</b><small>アンダーステア寄り</small></span></label>
-      <label class="choice"><input type="radio" name="issue" value="over"><span><b>スピンしやすい</b><small>オーバーステア寄り</small></span></label>
-      <label class="choice"><input type="radio" name="issue" value="slip"><span><b>滑りやすい</b><small>空転・トラクション不足</small></span></label>
-      <label class="choice"><input type="radio" name="issue" value="none"><span><b>特にない</b><small>車の使い方で選びたい</small></span></label>
-    </div></div>
-    <div class="step"><div class="step-heading"><b>2</b><span>主にどこを走りますか？</span></div><div class="choice-grid">
-      <label class="choice"><input type="radio" name="surface" value="city" checked><span><b>市街地・舗装路</b><small>通常の道路</small></span></label>
-      <label class="choice"><input type="radio" name="surface" value="highway"><span><b>高速道路</b><small>直進・高速安定性</small></span></label>
-      <label class="choice"><input type="radio" name="surface" value="mountain"><span><b>山道・峠</b><small>カーブ・切り返し</small></span></label>
-      <label class="choice"><input type="radio" name="surface" value="offroad"><span><b>未舗装・林道</b><small>悪路・段差</small></span></label>
-    </div></div>
-    <div class="step"><div class="step-heading"><b>3</b><span>雨の日にも走りますか？</span></div><div class="choice-grid"><label class="choice"><input type="radio" name="weather" value="dry" checked><span><b>晴天が中心</b><small>ドライ路面</small></span></label><label class="choice"><input type="radio" name="weather" value="wet"><span><b>雨天も重視</b><small>ウェット安定性を優先</small></span></label></div></div>
-    <div class="step"><div class="step-heading"><b>4</b><span>何を優先したいですか？</span></div><div class="choice-grid"><label class="choice"><input type="radio" name="goal" value="stable" checked><span><b>滑りにくさ</b><small>安定・扱いやすさ</small></span></label><label class="choice"><input type="radio" name="goal" value="turn"><span><b>曲がりやすさ</b><small>ハンドリング</small></span></label><label class="choice"><input type="radio" name="goal" value="balanced"><span><b>バランス</b><small>普段使いを重視</small></span></label><label class="choice"><input type="radio" name="goal" value="speed"><span><b>走行性能</b><small>高速・機敏な操作</small></span></label></div></div>
-    <div class="step"><label class="drive-label" for="drivetrain"><span class="step-heading"><b>5</b><span>駆動方式（分かる場合）</span></span></label><select id="drivetrain" name="drive"><option value="unknown">分からない・指定しない</option><option value="fr">後輪駆動（FR）</option><option value="ff">前輪駆動（FF）</option><option value="awd">四輪駆動（4WD / AWD）</option><option value="ev">電気自動車（EV）</option></select></div>
-    <button type="reset" class="reset-link" id="resetDiagnostic">↺ 条件をリセット</button>
-  </form>
-  <div class="results-panel" aria-live="polite" aria-atomic="false"><div class="results-header"><span class="overline">診断結果</span><h3>おすすめの3種類</h3><p id="resultSummary">条件を選ぶと、おすすめを表示します。</p></div><div id="resultCards" class="result-cards"></div><div id="driveAdvice" class="drive-advice"></div><p class="result-disclaimer">※ GTA / Palette Town向けの提供資料・使用感に基づく相対評価です。車種や操作方法により変わります。数値スコアは実測性能ではありません。</p></div>
+<section id="diagnostic" class="section-block" aria-labelledby="check-heading">
+  <div class="section-head"><div><span class="overline">02 / 診断</span><h2 id="check-heading">お悩みチェッカー</h2><p>条件を追加するたびに、33種類のホイールから候補が絞られます。同じ条件をもう一度押すと解除できます。</p></div><span class="section-note">リアルタイム条件検索</span></div>
+  <div class="layout">
+    <section class="filters card" aria-labelledby="filterTitle">
+      <div class="filters-header"><div><span class="step-label">01 / 条件</span><h2 id="filterTitle">どんなホイールを探す？</h2></div><button id="clearAll" type="button" class="clear-link">すべて解除</button></div>
+      <p class="filter-note">複数の項目を組み合わせられます。同じ項目内は1つだけ選べます。</p>
+      <div class="filter-section"><h3>いまの悩み</h3><div class="choices" data-group="issue" role="group" aria-label="いまの悩み">
+        <button type="button" data-value="under" aria-pressed="false">曲がりにくい<span>アンダーステア</span></button>
+        <button type="button" data-value="over" aria-pressed="false">曲がりすぎる<span>スピンしやすい</span></button>
+        <button type="button" data-value="slip" aria-pressed="false">滑りやすい<span>空転・グリップ不足</span></button>
+      </div></div>
+      <div class="filter-section"><h3>よく走る場所</h3><div class="choices" data-group="road" role="group" aria-label="よく走る場所">
+        <button type="button" data-value="city" aria-pressed="false">街・舗装路</button>
+        <button type="button" data-value="highway" aria-pressed="false">高速道路</button>
+        <button type="button" data-value="mountain" aria-pressed="false">山道・峠</button>
+        <button type="button" data-value="offroad" aria-pressed="false">未舗装路</button>
+      </div></div>
+      <div class="filter-section"><h3>追加したい条件 <span class="hint">複数選択OK</span></h3><div class="choices" data-group="flags" role="group" aria-label="追加したい条件">
+        <button type="button" data-value="rain" aria-pressed="false">雨の日も安定</button>
+        <button type="button" data-value="grip" aria-pressed="false">グリップ重視</button>
+        <button type="button" data-value="turn" aria-pressed="false">曲がりやすさ</button>
+        <button type="button" data-value="balanced" aria-pressed="false">癖の少なさ</button>
+        <button type="button" data-value="bumps" aria-pressed="false">段差・着地への強さ</button>
+      </div></div>
+      <div class="filter-section last"><label for="categoryFilter"><h3>カテゴリ <span class="hint">任意</span></h3></label><select id="categoryFilter"><option value="">すべてのカテゴリ</option><option>オフロード</option><option>ストリート</option><option>スポーツ</option><option>チューナー</option><option>トラック</option><option>ハイエンド</option><option>SUV</option><option>マッスル</option></select></div>
+      <p class="qualifier">※ ホイールの特性は提供されたゲーム内使用メモに基づく参考情報です。実測値・絶対的な適合保証ではありません。</p>
+    </section>
+    <section class="results" aria-labelledby="resultsTitle">
+      <div class="result-overview card"><div><span class="step-label">02 / 結果</span><h2 id="resultsTitle">残ったホイール</h2><p>選択条件をすべて満たす候補だけ表示します。</p></div><div class="count-box" aria-live="polite"><strong id="remainingCount">33</strong><span>/ 33種類</span></div></div>
+      <div class="active-panel" id="activePanel"><span class="active-caption">適用中の条件</span><div id="activeFilters" class="active-filters" aria-live="polite"><span class="empty-filter">まだ条件はありません</span></div></div>
+      <div class="result-toolbar"><label class="search"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input type="search" id="filterWheelSearch" placeholder="候補から名前・特徴を検索" aria-label="候補のホイールを検索"></label><span class="result-hint" id="resultStatus" role="status" aria-live="polite">33種類を表示中</span></div>
+      <div id="resultsGrid" class="results-grid"></div>
+      <div class="no-results card" id="noResults" hidden><div class="no-icon">0</div><h3>一致するホイールがありません</h3><p>条件を組み合わせると0件になる場合があります。条件を1つ外すと候補が増えます。</p><button type="button" id="undoLast" class="primary">最後に追加した条件を解除</button><button type="button" id="emptyClear" class="secondary">全部解除する</button></div>
+      <p class="bottom-note">実際の走行感は車種・駆動方式・カスタム状態や運転操作によって変わります。候補を絞り込むための参考ツールとしてご利用ください。</p>
+    </section>
   </div>
 </section>
 

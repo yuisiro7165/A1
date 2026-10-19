@@ -167,8 +167,8 @@ function renderCatalog(){
   }).join('');
   $('catalogNone').hidden=subset.length!==0;
 }
-$('diagnosticForm').addEventListener('change',renderResults);
-$('diagnosticForm').addEventListener('reset',()=>requestAnimationFrame(renderResults));
+
+
 $('wheelSearch').addEventListener('input',renderCatalog);
 $('wheelFilters').addEventListener('click',e=>{
   const button=e.target.closest('button[data-filter]');if(!button)return;
@@ -179,4 +179,4 @@ $('wheelFilters').addEventListener('click',e=>{
 try { if(localStorage.getItem('mechanic-theme')==='dark')document.body.classList.add('dark'); } catch (e) { /* local preview without storage */ }
 function updateThemeButton(){$('themeBtn').textContent=document.body.classList.contains('dark')?'☀':'☾';}
 $('themeBtn').addEventListener('click',()=>{document.body.classList.toggle('dark');try{localStorage.setItem('mechanic-theme',document.body.classList.contains('dark')?'dark':'light');}catch(e){}updateThemeButton();});
-updateThemeButton();renderResults();renderCatalog();
+updateThemeButton();renderCatalog();
