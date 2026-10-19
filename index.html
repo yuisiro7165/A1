@@ -3,29 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Palette Town | Mechanic Desk</title>
+  <title>Mechanic Desk | PALETTE TOWN / GARAGE</title>
   <link rel="stylesheet" href="style.css?v=fullcustom-nitro-20261017-3">
-  <link rel="stylesheet" href="theme-icons.css?v=20261020-01">
+<link rel="stylesheet" href="shared-ui.css?v=ui-unify-20261020-1">
+<script src="shared-ui.js?v=ui-unify-20261020-1"></script>
 </head>
-<body>
-  <div class="app">
+<body data-pt-page="mechanic">
+  <div class="app pt-page">
 
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-mark">PT</div>
-        <div>
-          <div class="eyebrow">PALETTE TOWN / GARAGE</div>
-          <h1>Mechanic Desk</h1>
-        </div>
-      </div>
-
-      <div class="header-actions">
-        <button type="button" onclick="location.href='colors.html?v=anonymous-safe-20261009-1'">カラー</button>
-        <button type="button" onclick="location.href='guide.html'" aria-label="パーツガイドへ移動">パーツガイド</button>
-        <button id="themeBtn" class="theme-btn" title="ライト・ダークモード切替" aria-label="ライト・ダークモード切替" type="button">🌙</button>
-        <button id="resetBtn" class="ghost">リセット</button>
-      </div>
-    </header>
+    <header class="topbar pt-header">
+  <a class="pt-brand" href="index.html" aria-label="Palette Town Garage ホーム">
+    <span class="pt-brand-mark" aria-hidden="true">PT</span>
+    <span class="pt-brand-copy"><small>PALETTE TOWN / GARAGE</small><strong class="pt-header-name">Mechanic Desk</strong></span>
+  </a>
+  <nav class="pt-header-actions" aria-label="メインナビゲーション">
+    <span class="pt-nav-pages"><a class="pt-tab is-active" href="index.html" aria-current="page">Mechanic Desk</a>
+<a class="pt-tab" href="colors.html">Color Book</a>
+<a class="pt-tab" href="guide.html">Parts Guide</a>
+</span>
+    <span class="pt-nav-tools"><button id="resetBtn" type="button" class="ghost pt-utility">リセット</button><button id="themeBtn" class="pt-theme" type="button" title="表示モード切替" aria-label="表示モードを切り替える">☾</button></span>
+  </nav>
+</header>
 
     <section class="summary">
       <div class="bill-amounts">

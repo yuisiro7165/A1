@@ -4,24 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f3f5fb">
-  <title>Color Book | Palette Town Garage</title>
+  <title>Color Book | PALETTE TOWN / GARAGE</title>
   <link rel="stylesheet" href="colors.css?v=syncdiag-20261009-5">
-  <link rel="stylesheet" href="theme-icons.css?v=20261020-01">
+<link rel="stylesheet" href="shared-ui.css?v=ui-unify-20261020-1">
+<script src="shared-ui.js?v=ui-unify-20261020-1"></script>
 </head>
-<body class="light palette-colors">
-<div class="page">
-  <header class="topbar">
-    <a class="brand" href="colors.html" aria-label="Color Book ホーム">
-      <span class="brand-icon">PT</span>
-      <span><small>PALETTE TOWN / GARAGE</small><strong>Color Book</strong></span>
-    </a>
-    <nav class="topnav" aria-label="メインメニュー">
-      <a href="index.html" class="btn btn-link">Mechanic Desk</a>
-      <a href="guide.html" class="btn btn-link">パーツガイド</a>
-      <button id="paletteBtn" class="btn btn-primary" type="button">塗装一覧</button>
-      <button id="themeBtn" class="btn btn-outline icon-btn" type="button" aria-label="ライト・ダークモード切替">🌙</button>
-    </nav>
-  </header>
+<body class="light" data-pt-page="color">
+<div class="page pt-page">
+  <header class="topbar pt-header">
+  <a class="pt-brand" href="index.html" aria-label="Palette Town Garage ホーム">
+    <span class="pt-brand-mark" aria-hidden="true">PT</span>
+    <span class="pt-brand-copy"><small>PALETTE TOWN / GARAGE</small><strong class="pt-header-name">Color Book</strong></span>
+  </a>
+  <nav class="pt-header-actions" aria-label="メインナビゲーション">
+    <span class="pt-nav-pages"><a class="pt-tab" href="index.html">Mechanic Desk</a>
+<a class="pt-tab is-active" href="colors.html" aria-current="page">Color Book</a>
+<a class="pt-tab" href="guide.html">Parts Guide</a>
+</span>
+    <span class="pt-nav-tools"><button id="paletteBtn" class="pt-utility pt-primary" type="button">塗装一覧</button><button id="themeBtn" class="pt-theme" type="button" title="表示モード切替" aria-label="表示モードを切り替える">☾</button></span>
+  </nav>
+</header>
 
   <section class="summary-bar" aria-label="カラー登録状況">
     <div class="summary-label"><span class="eyebrow">COLOR COLLECTION</span><h1>カラー管理</h1><p>お気に入りの配色を保存・検索できます。</p></div>
