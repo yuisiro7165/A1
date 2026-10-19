@@ -1,0 +1,38 @@
+/* PALETTE TOWN: three-page shared theme switch — script text changes are hidden, icon lives in CSS. */
+#themeBtn.theme-btn, #themeBtn.icon-btn, #themeBtn.theme-toggle {
+  box-sizing: border-box;
+  width: 42px !important;
+  min-width: 42px !important;
+  height: 39px !important;
+  min-height: 39px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  border-radius: 10px !important;
+  cursor: pointer;
+  flex-shrink: 0;
+  color: transparent !important;
+  -webkit-tap-highlight-color: transparent;
+}
+#themeBtn::before {
+  content: "";
+  display:block;
+  width: 21px;
+  height: 21px;
+  flex: 0 0 21px;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNTU2OWZiIiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMjAuNyAxNC4zQTguNSA4LjUgMCAwIDEgOS43IDMuM2E4LjcgOC43IDAgMSAwIDExIDExWiIvPjwvc3ZnPg==");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+body.dark #themeBtn::before,
+body.palette-colors:not(.light) #themeBtn::before {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOWNhZmZmIiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI0Ii8+PHBhdGggZD0iTTEyIDJ2Mk0xMiAyMHYyTTQuOTMgNC45M2wxLjQyIDEuNDJtMTEuMyAxMS4zIDEuNDIgMS40Mk0yIDEyaDJtMTYgMGgyTTQuOTMgMTkuMDdsMS40Mi0xLjQybTExLjMtMTEuMyAxLjQyLTEuNDIiLz48L3N2Zz4=");
+}
+#themeBtn:focus-visible {
+  outline: 3px solid #7988ff !important;
+  outline-offset: 3px !important;
+}
