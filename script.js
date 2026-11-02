@@ -125,7 +125,19 @@ function getChargeBreakdown() {
   return { total, eligibleTotal, savings, discountedTotal: total - savings };
 }
 
+// 数量入力のカードを、チェック式パーツと同じ選択色に連動させる。
+// フルカス・リセットなど、コードから数値を書き換えた場合も再計算時に反映する。
+function updateQuantityCardStyles() {
+  document.querySelectorAll(".qty").forEach(input => {
+    const card = input.closest(".part, .basic-row");
+    if (!card) return;
+    const quantity = Number(input.value);
+    card.classList.toggle("has-quantity", Number.isFinite(quantity) && quantity >= 1);
+  });
+}
+
 function calculate() {
+  updateQuantityCardStyles();
   const amounts = getChargeBreakdown();
   const normalButton = document.getElementById("total");
   const discountButton = document.getElementById("discountTotal");

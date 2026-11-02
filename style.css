@@ -1028,3 +1028,26 @@ body.dark button.full-custom-btn.is-active:hover {background:#285341;}
   .performance .panel-head {align-items:flex-start;}
   .performance-quick .hint {display:none;}
 }
+
+/* 数量入力式の選択状態。1個/1件以上でカード全体が選択色になる。 */
+.part.has-quantity,
+.part.has-quantity:hover,
+.basic-row.has-quantity {
+  background:#f0f2ff;
+  border-color:#b8c0ff;
+  transition:background-color .16s ease,border-color .16s ease;
+}
+.part.has-quantity .qty,
+.basic-row.has-quantity .qty {
+  border-color:#848ee9;
+}
+body.dark .part.has-quantity,
+body.dark .part.has-quantity:hover,
+body.dark .basic-row.has-quantity {
+  background:#252b45;
+  border-color:#6874d8;
+}
+body.dark .part.has-quantity .qty,
+body.dark .basic-row.has-quantity .qty {
+  border-color:#7c8de7;
+}
