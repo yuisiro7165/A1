@@ -308,7 +308,8 @@ function defaultSpec(){return {enabled:false,type:"クラシック",presetId:"",
 function getSlotState(key){
   const root=document.querySelector(`[data-slot="${key}"]`);if(!root)return defaultSpec();
   const type=root.querySelector(".slot-type").value;
-  const enabled=root.classList.contains("open") && root.querySelector(".slot-enabled").checked;
+  // 展開状態は見た目のみ。閉じても選択した色を保存する。
+  const enabled=root.querySelector(".slot-enabled").checked;
   const spec={enabled,type,presetId:"",finish:"",rgb:"",hex:""};
   if(PRESET_CATEGORIES.includes(type)) spec.presetId=root.querySelector(".preset-select")?.value||"";
   if(type==="RGBピッカー"){
@@ -327,7 +328,7 @@ function slotEditorHtml(def){
   return `<section class="slot-editor" data-slot="${def.key}">
     <button class="slot-toggle" type="button"><span>${def.label}</span><span class="slot-open-label">開く</span></button>
     <div class="slot-body">
-      <label class="slot-use"><input class="slot-enabled" type="checkbox" checked> この項目を登録する</label>
+      <label class="slot-use"><input class="slot-enabled" type="checkbox"> この項目を登録する</label>
       <label>指定方法
         <select class="slot-type">${INPUT_TYPES.map(x=>`<option value="${x}">${x}</option>`).join("")}</select>
       </label>
@@ -372,21 +373,33 @@ function setupSlotEditors(){
   $("slotEditors").addEventListener("click",e=>{
     const copy=e.target.closest(".rgb-editor-copy");
     if(copy){const value=copy.closest(".slot-editor")?.querySelector(".rgb-text")?.value;copyRgbValue(value);return;}
-    const btn=e.target.closest(".slot-toggle");if(!btn)return;const root=btn.closest(".slot-editor");root.classList.toggle("open");btn.querySelector(".slot-open-label").textContent=root.classList.contains("open")?"閉じる":"開く"});
+    const btn=e.target.closest(".slot-toggle");if(!btn)return;
+    const root=btn.closest(".slot-editor");
+    const opening=!root.classList.contains("open");
+    root.classList.toggle("open",opening);
+    // Opening a slot activates it. Closing a slot does not remove its color.
+    if(opening)root.querySelector(".slot-enabled").checked=true;
+    refreshSlotToggle(root);
+    refreshCombinedSlotPreviews();
+  });
   $("slotEditors").addEventListener("change",e=>{
     const root=e.target.closest(".slot-editor");if(!root)return;
     if(e.target.classList.contains("slot-type")) renderSlotDynamic(root);
     if(e.target.classList.contains("rgb-color")){const rgb=hexToRgb(e.target.value);root.querySelector(".rgb-text").value=`rgb(${rgb.r},${rgb.g},${rgb.b})`}
     if(e.target.classList.contains("hex-color")) root.querySelector(".hex-text").value=e.target.value.toUpperCase();
     updateSlotPreview(root);
+    refreshSlotToggle(root);
+    refreshCombinedSlotPreviews();
   });
   $("slotEditors").addEventListener("input",e=>{
     const root=e.target.closest(".slot-editor");if(!root)return;
     if(e.target.classList.contains("rgb-text")){const rgb=parseRgb(e.target.value);if(rgb)root.querySelector(".rgb-color").value=rgbToHex(rgb.r,rgb.g,rgb.b)}
     if(e.target.classList.contains("hex-text")){const h=normalizeHex(e.target.value);if(h)root.querySelector(".hex-color").value=h}
     updateSlotPreview(root);
+    refreshCombinedSlotPreviews();
   });
-  document.querySelectorAll(".slot-editor").forEach(root=>renderSlotDynamic(root));
+  document.querySelectorAll(".slot-editor").forEach(root=>{renderSlotDynamic(root);refreshSlotToggle(root)});
+  refreshCombinedSlotPreviews();
 }
 function specDisplay(spec){
   if(!spec?.enabled)return null;
@@ -406,18 +419,51 @@ function specDisplay(spec){
   }
   return {text:"未設定",color:"",background:"",copyRgb:""};
 }
+// Pearl is a separate saved slot. The overlay is a visual approximation only.
+function pearlPreviewBackground(base,pearl){
+  if(!base||!pearl?.color)return base||"";
+  const rgb=hexToRgb(pearl.color);
+  if(!rgb)return base;
+  const {r,g,b}=rgb;
+  return `linear-gradient(115deg,transparent 0%,rgba(${r},${g},${b},.10) 24%,rgba(${r},${g},${b},.53) 60%,rgba(255,255,255,.18) 79%,transparent 100%),${base}`;
+}
+function refreshCombinedSlotPreviews(){
+  const pearl=specDisplay(getSlotState("pearl"));
+  for(const key of ["main","sub"]){
+    const root=document.querySelector(`[data-slot="${key}"]`);
+    if(!root)continue;
+    const base=specDisplay(getSlotState(key));
+    const preview=root.querySelector(".preview-swatch");
+    if(!preview)continue;
+    const composite=base&&pearl?pearlPreviewBackground(base.background,pearl):base?.background||"";
+    preview.style.background=composite;
+    preview.classList.toggle("empty",!composite);
+    preview.title=base&&pearl?"パールの重なりを参考表示（ゲーム内での色とは異なる場合があります）":"";
+  }
+}
+function refreshSlotToggle(root){
+  const opened=root.classList.contains("open");
+  const active=root.querySelector(".slot-enabled").checked;
+  root.querySelector(".slot-open-label").textContent=opened?"閉じる":active?"設定済み ✓ · 開く":"開く";
+  root.classList.toggle("slot-configured",active);
+}
 function cardHtml(item){
   const colors=SLOT_DEFS.map(def=>({def,value:specDisplay(item.colors?.[def.key])}));
+  const pearl=colors.find(x=>x.def.key==="pearl")?.value;
   const bands=colors.map(({def,value})=>{
-    const background=value?.background||"";
+    const hasOverlay=(def.key==="main"||def.key==="sub")&&Boolean(value&&pearl);
+    const background=hasOverlay?pearlPreviewBackground(value.background,pearl):value?.background||"";
     const approximate=value?.approximate;
-    return `<div class="swatch-cell${background?"":" no-color"}" ${background?`style="--swatch:${background}"`:""} title="${escapeHtml(def.label+": "+(value?.text||"未設定")+(approximate?"（参考色）":""))}"><em>${escapeHtml(def.label)}</em></div>`;
+    const label=def.label+": "+(value?.text||"未設定")+(approximate?"（参考色）":"")+(hasOverlay?" / パール効果の参考表示":"");
+    return `<div class="swatch-cell${background?"":" no-color"}${hasOverlay?" with-pearl":""}" ${background?`style="--swatch:${background}"`:""} title="${escapeHtml(label)}"><em>${escapeHtml(def.label)}</em></div>`;
   }).join("");
   const rows=colors.filter(({value})=>value).map(({def,value})=>{
     const rgb=value.copyRgb;
     const text=escapeHtml(value.text);
     const label=rgb?`<button type="button" class="rgb-copy-value" data-copy-rgb="${escapeHtml(rgb)}" title="${escapeHtml(rgb)} をクリックでコピー" aria-label="${escapeHtml(rgb)} をコピー">${text}<span class="rgb-copy-icon" aria-hidden="true">⧉</span></button>`:`<span>${text}</span>`;
-    const background=value.background||"";
+    const background=(def.key==="main"||def.key==="sub")&&pearl
+      ? pearlPreviewBackground(value.background,pearl)
+      :value.background||"";
     return `<div class="scheme-row"><b>${escapeHtml(def.label)}</b><span class="spec-label">${label}<i class="tiny-swatch${background?"":" empty"}"${background?` style="background:${background}"`:""}></i></span></div>`;
   }).join("");
   return `<article class="scheme-card" data-id="${escapeHtml(item.id)}">
@@ -447,9 +493,11 @@ function clearForm(){
   $("saveColorBtn").textContent="＋ カラーを登録";
   $("clearFormBtn").textContent="入力をクリア";
   document.querySelectorAll(".slot-editor").forEach(root=>{
-    root.classList.remove("open");root.querySelector(".slot-open-label").textContent="開く";
-    root.querySelector(".slot-enabled").checked=true;root.querySelector(".slot-type").value="クラシック";renderSlotDynamic(root);
+    root.classList.remove("open");
+    root.querySelector(".slot-enabled").checked=false;root.querySelector(".slot-type").value="クラシック";
+    renderSlotDynamic(root);refreshSlotToggle(root);
   });
+  refreshCombinedSlotPreviews();
 }
 function editScheme(id){
   const item=schemes.find(x=>x.id===id);if(!item||!isMine(item)||item.archived)return;
@@ -471,7 +519,9 @@ function editScheme(id){
       root.querySelector(".hex-color").value=normalizeHex(x.hex)||"#FFFFFF";
     }
     updateSlotPreview(root);
+    refreshSlotToggle(root);
   });
+  refreshCombinedSlotPreviews();
   document.querySelector(".editor-panel").scrollIntoView({behavior:"smooth",block:"start"});
 }
 async function updateCloudRecord(id,change){

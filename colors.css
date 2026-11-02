@@ -65,3 +65,9 @@ body:not(.light) #saveFailure:not([hidden]){background:#40262b;color:#ffd4d4;bor
 .rgb-copy-toast{position:fixed;z-index:99999;bottom:24px;left:50%;transform:translateX(-50%) translateY(15px);background:var(--panel);color:var(--text);border:1px solid var(--blue);box-shadow:0 10px 35px #0003;border-radius:9px;padding:12px 18px;font-size:12px;font-weight:750;max-width:min(92vw,460px);text-align:center;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s}
 .rgb-copy-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 @media(max-width:620px){.rgb-copy-value{text-align:left;word-break:break-word}.scheme-row .spec-label{flex-wrap:wrap;justify-content:flex-end}}
+
+/* Slot selection independent from accordion. Pearl is a visual approximation. */
+.slot-save-note{margin:0 2px 8px;color:var(--muted);font-size:10px;line-height:1.6}
+.slot-configured>.slot-toggle{box-shadow:inset 3px 0 0 var(--blue)}
+.slot-configured .slot-open-label{font-weight:800}
+.swatch-cell.with-pearl::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(125deg,transparent 25%,rgba(255,255,255,.10) 54%,transparent 77%)}
