@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f3f5fb">
   <title>Color Book | PALETTE TOWN / GARAGE</title>
-  <link rel="stylesheet" href="colors.css?v=syncdiag-20261009-5">
+  <link rel="stylesheet" href="colors.css?v=preset-swatches-rgbcopy-20261102-1">
 <link rel="stylesheet" href="shared-ui.css?v=ui-unify-20261020-1">
 <script src="shared-ui.js?v=ui-unify-20261020-1"></script>
 </head>
@@ -44,6 +44,7 @@
       </div>
       <div class="list-subhead"><span id="viewTitle">すべてのカラー</span><span id="syncStatus" role="status">読み込み中…</span></div>
       <div id="schemeSections" class="schemes-root"></div>
+       <p class="preset-preview-hint">※ プリセット色（クラシック・メタリック・マット・金属・カメレオン）は参考色です。ゲーム内の実際の色とは異なる場合があります。RGBの値はクリックしてコピーできます。</p>
       <p class="registry-hint">※ 共有モードでは全員のカラーを閲覧でき、各自が登録したカラーを編集できます。匿名認証は自動で行われます。</p>
     </section>
 
@@ -82,11 +83,12 @@
 
 <dialog id="paletteDialog" class="palette-dialog" aria-labelledby="paletteDialogHeading">
   <header class="palette-dialog-head"><div><span class="eyebrow">PAINT REFERENCE</span><h2 id="paletteDialogHeading">塗装一覧</h2></div><button id="closePaletteBtn" class="btn btn-outline" type="button">閉じる ✕</button></header>
+  <p class="preset-preview-hint">※ ゲーム内カラーの参考表示です。正確なRGB値を再現するものではありません。</p>
   <div class="palette-filter-row"><select id="paletteCategory" aria-label="塗装カテゴリー"></select><input id="paletteSearch" type="search" placeholder="塗装名・番号を検索" aria-label="塗装検索"></div>
   <div id="paletteGrid" class="palette-grid"></div>
 </dialog>
 <script src="colors-data.js?v=20261008-2305"></script>
 <script src="shared-config.js?v=syncdiag-20261009-5"></script>
-<script src="colors.js?v=syncdiag-20261009-5"></script>
+<script src="colors.js?v=preset-swatches-rgbcopy-20261102-1"></script>
 </body>
 </html>

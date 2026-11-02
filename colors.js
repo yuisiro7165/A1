@@ -25,6 +25,75 @@ let authFailure = "";
 let authRetryAfter = 0;
 let authRetryPromise = null;
 const PALETTE = Array.isArray(window.INITIAL_COLORS) ? window.INITIAL_COLORS : [];
+
+// Preset swatches are illustrative only: the shipped 258 preset rows have no RGB/HEX values.
+// All values are presentation-only; they are never submitted to Firebase or stored in schemes.
+const PRESET_CLASSIC_PREVIEW = ["#101012", "#1D1E21", "#33363A", "#26292D", "#393B3E", "#4A4C50", "#A6A8AC", "#9CA5AD", "#666A70", "#5E626D", "#757776", "#323642", "#52545B", "#D82228", "#B70E14", "#E02824", "#B91A1A", "#B91C13", "#8E121D", "#5F1120", "#D64A1A", "#541724", "#691622", "#B61833", "#E93294", "#E661A6", "#F48993", "#E4772B", "#E86C12", "#F49D24", "#C5A04C", "#996C35", "#E6C82C", "#FFE325", "#D0C93B", "#0B3529", "#174D33", "#557669", "#4C5735", "#43A844", "#275E61", "#88D125", "#172649", "#23344E", "#203967", "#305A85", "#235CAA", "#2F668F", "#4B87A7", "#A4C7D8", "#65A8D0", "#285986", "#1555A8", "#196EE8", "#7FC8E2", "#342019", "#50311E", "#66492D", "#77462E", "#98744B", "#80684C", "#AB8464", "#996344", "#5A4C28", "#8F6B4B", "#B4A57C", "#C7B99A", "#D8D0B3", "#472448", "#603B89", "#291738", "#8A45B4", "#EEE8DA", "#F8F8F2", "#D6DEE5"];
+const PRESET_MATTE_PREVIEW = ["#141517", "#5D6065", "#A2A5AA", "#E1E2DF", "#245386", "#142B53", "#0D1E39", "#2B213F", "#51365A", "#B52127", "#6C151F", "#CD6D20", "#D6B42D", "#95C21F", "#36783E", "#1D3B2A", "#566748", "#665E37", "#51422F", "#BA9E74"];
+const PRESET_METAL_PREVIEW = ["#79848A", "#383C41", "#BBC5C9", "#E0B84E", "#B99043", "#D8E0E7"];
+const PRESET_HUE_PREVIEW = {"ダークグリーン": "#113A31", "ダークティール": "#14545A", "ダークブルー": "#142C6B", "ダークパープル": "#3E206A", "ライトグリーン": "#A1E7AA", "ライトブルー": "#A9D9F4", "ライトパープル": "#CCA7F8", "ライトピンク": "#F7B9D8", "オフホワイト": "#E8E6DF", "ホットピンク": "#F92C96", "バーガンディ": "#68112E", "グラファイト": "#4F5661", "ブラック": "#101217", "ホワイト": "#F0F4F9", "レッド": "#D32846", "ワイン": "#781A35", "パープル": "#842AD4", "ピンク": "#EE74B7", "マゼンタ": "#E124B5", "シアン": "#14D1E5", "ターコイズ": "#21C5B9", "ティール": "#087A86", "ブルー": "#2274CF", "グリーン": "#36A95E", "ライム": "#9BE12E", "イエロー": "#E8C629", "オレンジ": "#F28724", "カッパー": "#B56F3E", "ブロンズ": "#9E6B3C", "シャンパン": "#DAC6A0", "ゴールド": "#DDBA4B", "ブラウン": "#73503A", "クリーム": "#EEE3B7"};
+const PRESET_SPECIAL_PREVIEW = {"ブラック・オイルスピル": ["#0C1220", "#13587A", "#5D2B7F", "#12222D"], "ブラック・レインボー": ["#10121A", "#5A1C72", "#164C6E", "#6A4D23"], "ブラック・ホログラフィック": ["#15151D", "#537EE8", "#BC72BB", "#82CCC5"], "ホワイト・ホログラフィック": ["#ECEEF1", "#A6E4E2", "#D8A6E9", "#FFF6DF"], "ホワイトプリズマティック": ["#FCFCFB", "#C6D5F6", "#F2BCE9"], "グラファイトプリズマティック": ["#505460", "#8B77C8", "#6285A7"], "モノクローム": ["#0B0B11", "#6E7077", "#F4F4F4"], "ナイト/デイ": ["#11234A", "#D6A54E", "#E6D6B3"], "フルレインボー": ["#EF555D", "#F2BA48", "#6FD18A", "#4B8CE2", "#C16BEA"], "レッド/レインボー フリップ": ["#C53248", "#F0B951", "#40B5B5", "#9B48CB"], "ブルー/レインボー フリップ": ["#1544AF", "#59B9D0", "#A95CDA", "#F2D365"], "サンセット": ["#DA3B5A", "#F29743", "#E7C675"], "シンセウェーブ": ["#A832B9", "#2159C8", "#EF487D"], "バイスシティ": ["#E86BAA", "#4CD0CE", "#7032BA"], "フォーシーズンズ": ["#5BBD75", "#E8D566", "#E28442", "#7099D6"], "バブルガム": ["#E994CA", "#B678E8", "#66D1EA"], "ザ・セブン": ["#EF3650", "#F7AD42", "#D8E45E", "#58B9D5", "#9851E8"], "クリスマスだよ": ["#D52936", "#2D9C54", "#E4C569"], "気温": ["#5CA3E2", "#DFE5E8", "#E87E57"], "ハオ・スペシャルワークス": ["#644ED7", "#46C7B8", "#DBB964"], "エレクトロ": ["#1F60E9", "#15D6DB", "#EA44BB"], "モニカ": ["#E4AFC7", "#8966CC", "#6DADD9"], "フブキ": ["#D7EAF3", "#91BBDB", "#C5B3E8"], "メリネット9 スローバック": ["#E5AF7C", "#C76476", "#7961B7"], "スプランク・エクストリーム": ["#F3D858", "#4FB86C", "#F6A637"], "フェーリエル 2": ["#4DB2CC", "#B06FDB", "#D2BF75"], "仮面ライダー": ["#D93848", "#1D323D", "#D7C16F"], "クローム・アバレーション": ["#F3F5FA", "#6AB5C1", "#9C80CC"], "オイルスリックパール": ["#112A4B", "#28758B", "#8743B0"]};
+const CSS_COLOR_RE = /^#[0-9A-Fa-f]{6}$/;
+function previewColorForPreset(p){
+  if(!p)return {color:"", background:"", approximate:false};
+  const exact=normalizeHex(p.hex);
+  if(exact)return {color:exact,background:exact,approximate:false};
+  const n=Number(p.number)-1;
+  if(p.category==="クラシック"||p.category==="メタリック"){
+    const c=PRESET_CLASSIC_PREVIEW[n]||"#858995";
+    return {color:c,background:c,approximate:true};
+  }
+  if(p.category==="マット"||p.category==="金属"){
+    const c=(p.category==="マット"?PRESET_MATTE_PREVIEW:PRESET_METAL_PREVIEW)[n]||"#9297A0";
+    return {color:c,background:c,approximate:true};
+  }
+  if(p.category==="カメレオン"){
+    const name=String(p.name||"");
+    let parts=PRESET_SPECIAL_PREVIEW[name];
+    if(!parts){
+      // Longer names first, so dark blue is not confused with blue.
+      const keys=Object.keys(PRESET_HUE_PREVIEW).sort((a,b)=>b.length-a.length);
+      const sections=name.split("/");
+      parts=sections.map(part=>{
+        const key=keys.find(k=>part.includes(k));
+        return key?PRESET_HUE_PREVIEW[key]:null;
+      }).filter(Boolean);
+      if(parts.length<2){
+        const first=keys.find(k=>name.includes(k));
+        const base=first?PRESET_HUE_PREVIEW[first]:"#6975B5";
+        parts=[base,"#D4B5E2","#65B7B8"];
+      }
+    }
+    const valid=parts.filter(x=>CSS_COLOR_RE.test(x));
+    const background=`linear-gradient(110deg,${valid.join(",")})`;
+    return {color:valid[0]||"#6975B5",background,approximate:true};
+  }
+  return {color:"#88929A",background:"#88929A",approximate:true};
+}
+function copyTextFromRGB(value){
+  const match=String(value||"").match(/^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i);
+  if(!match||match.slice(1).some(v=>Number(v)>255))return "";
+  return `rgb(${Number(match[1])},${Number(match[2])},${Number(match[3])})`;
+}
+async function copyRgbValue(rgb){
+  const value=copyTextFromRGB(rgb);if(!value)return;
+  try{
+    if(navigator.clipboard && window.isSecureContext)await navigator.clipboard.writeText(value);
+    else{
+      const input=document.createElement("textarea");input.value=value;input.readOnly=true;input.style.cssText="position:fixed;opacity:0;pointer-events:none";
+      document.body.appendChild(input);input.select();const success=document.execCommand("copy");input.remove();
+      if(!success)throw new Error("copy unavailable");
+    }
+    showRgbToast(`${value} をコピーしました`);
+  }catch{showRgbToast("コピーできませんでした。ブラウザの権限を確認してください");}
+}
+function showRgbToast(message){
+  let toast=document.getElementById("rgbCopyToast");
+  if(!toast){toast=document.createElement("div");toast.id="rgbCopyToast";toast.className="rgb-copy-toast";toast.setAttribute("role","status");document.body.appendChild(toast);}
+  toast.textContent=message;toast.classList.add("show");
+  clearTimeout(showRgbToast.timeout);showRgbToast.timeout=setTimeout(()=>toast.classList.remove("show"),2300);
+}
+
 let schemes = [];
 let activeGroup = "すべて";
 const $ = id => document.getElementById(id);
@@ -275,7 +344,7 @@ function renderSlotDynamic(root){
     const p=dynamic.querySelector(".preset-select");if(!p.value&&p.options.length)p.selectedIndex=0;
   }else if(type==="RGBピッカー"){
     dynamic.innerHTML=`<label>仕上げ選択<select class="finish-select">${PICKER_FINISHES.map(x=>`<option>${x}</option>`).join("")}</select></label>
-      <label>RGB<div class="picker-row"><input class="native-picker rgb-color" type="color" value="#FFFFFF"><input class="rgb-text" value="rgb(255,255,255)" placeholder="rgb(255,255,255)"></div></label>`;
+      <label>RGB<div class="picker-row"><input class="native-picker rgb-color" type="color" value="#FFFFFF"><input class="rgb-text" value="rgb(255,255,255)" placeholder="rgb(255,255,255)"></div></label><button type="button" class="rgb-editor-copy" title="現在のRGB値をコピー">⧉ RGBをコピー</button>`;
   }else{
     dynamic.innerHTML=`<label>仕上げ選択<select class="finish-select">${PICKER_FINISHES.map(x=>`<option>${x}</option>`).join("")}</select></label>
       <label>HEX<div class="picker-row"><input class="native-picker hex-color" type="color" value="#FFFFFF"><input class="hex-text" value="#FFFFFF" maxlength="7" placeholder="#FFFFFF"></div></label>`;
@@ -287,7 +356,7 @@ function updateSlotPreview(root){
   let text="未設定", color="";
   if(PRESET_CATEGORIES.includes(type)){
     const id=root.querySelector(".preset-select")?.value;const p=PALETTE.find(x=>x.id===id);
-    if(p){text=`${type} / ${p.number}.${p.name}`;color=normalizeHex(p.hex)}
+    if(p){text=`${type} / ${p.number}.${p.name}`;color=previewColorForPreset(p).background}
   }else if(type==="RGBピッカー"){
     const rgb=parseRgb(root.querySelector(".rgb-text")?.value||"");const finish=root.querySelector(".finish-select")?.value||"クラシック";
     if(rgb){color=rgbToHex(rgb.r,rgb.g,rgb.b);text=`${finish} / rgb(${rgb.r},${rgb.g},${rgb.b})`}
@@ -300,7 +369,10 @@ function updateSlotPreview(root){
 }
 function setupSlotEditors(){
   $("slotEditors").innerHTML=SLOT_DEFS.map(slotEditorHtml).join("");
-  $("slotEditors").addEventListener("click",e=>{const btn=e.target.closest(".slot-toggle");if(!btn)return;const root=btn.closest(".slot-editor");root.classList.toggle("open");btn.querySelector(".slot-open-label").textContent=root.classList.contains("open")?"閉じる":"開く"});
+  $("slotEditors").addEventListener("click",e=>{
+    const copy=e.target.closest(".rgb-editor-copy");
+    if(copy){const value=copy.closest(".slot-editor")?.querySelector(".rgb-text")?.value;copyRgbValue(value);return;}
+    const btn=e.target.closest(".slot-toggle");if(!btn)return;const root=btn.closest(".slot-editor");root.classList.toggle("open");btn.querySelector(".slot-open-label").textContent=root.classList.contains("open")?"閉じる":"開く"});
   $("slotEditors").addEventListener("change",e=>{
     const root=e.target.closest(".slot-editor");if(!root)return;
     if(e.target.classList.contains("slot-type")) renderSlotDynamic(root);
@@ -319,20 +391,35 @@ function setupSlotEditors(){
 function specDisplay(spec){
   if(!spec?.enabled)return null;
   if(PRESET_CATEGORIES.includes(spec.type)){
-    const p=PALETTE.find(x=>x.id===spec.presetId);if(!p)return {text:`${spec.type} / 未登録`,color:""};
-    return {text:`${spec.type} / ${p.number}.${p.name}`,color:normalizeHex(p.hex)};
+    const p=PALETTE.find(x=>x.id===spec.presetId);
+    if(!p)return {text:`${spec.type} / 未登録`,color:"",background:"",copyRgb:""};
+    return {text:`${spec.type} / ${p.number}.${p.name}`, ...previewColorForPreset(p),copyRgb:""};
   }
-  if(spec.type==="RGBピッカー") return {text:`${spec.finish||"クラシック"} / ${spec.rgb||""}`,color:normalizeHex(spec.hex)};
-  if(spec.type==="HEXピッカー") return {text:`${spec.finish||"クラシック"} / ${normalizeHex(spec.hex)||spec.hex||""}`,color:normalizeHex(spec.hex)};
-  return {text:"未設定",color:""};
+  if(spec.type==="RGBピッカー"){
+    const rgb=copyTextFromRGB(spec.rgb)||(hexToRgb(spec.hex)?(()=>{const c=hexToRgb(spec.hex);return `rgb(${c.r},${c.g},${c.b})`})():"");
+    const color=normalizeHex(spec.hex)||(rgb?(()=>{const r=parseRgb(rgb);return rgbToHex(r.r,r.g,r.b)})():"");
+    return {text:`${spec.finish||"クラシック"} / ${rgb||spec.rgb||""}`,color,background:color,copyRgb:rgb};
+  }
+  if(spec.type==="HEXピッカー"){
+    const color=normalizeHex(spec.hex);
+    return {text:`${spec.finish||"クラシック"} / ${color||spec.hex||""}`,color,background:color,copyRgb:""};
+  }
+  return {text:"未設定",color:"",background:"",copyRgb:""};
 }
 function cardHtml(item){
-  const colors = SLOT_DEFS.map(def => ({ def, value: specDisplay(item.colors?.[def.key]) }));
-  const bands = colors.map(({def,value}) => {
-    const hex = normalizeHex(value?.color);
-    return `<div class="swatch-cell${hex?"":" no-color"}" ${hex ? `style="--swatch:${hex}"` : ""} title="${escapeHtml(def.label+": "+(value?.text||"未設定"))}"><em>${escapeHtml(def.label)}</em></div>`;
+  const colors=SLOT_DEFS.map(def=>({def,value:specDisplay(item.colors?.[def.key])}));
+  const bands=colors.map(({def,value})=>{
+    const background=value?.background||"";
+    const approximate=value?.approximate;
+    return `<div class="swatch-cell${background?"":" no-color"}" ${background?`style="--swatch:${background}"`:""} title="${escapeHtml(def.label+": "+(value?.text||"未設定")+(approximate?"（参考色）":""))}"><em>${escapeHtml(def.label)}</em></div>`;
   }).join("");
-  const rows = colors.filter(({value})=>value).map(({def,value})=>`<div class="scheme-row"><b>${escapeHtml(def.label)}</b><span class="spec-label"><span>${escapeHtml(value.text)}</span><i class="tiny-swatch${value.color?"":" empty"}"${normalizeHex(value.color)?` style="background:${normalizeHex(value.color)}"`:""}></i></span></div>`).join("");
+  const rows=colors.filter(({value})=>value).map(({def,value})=>{
+    const rgb=value.copyRgb;
+    const text=escapeHtml(value.text);
+    const label=rgb?`<button type="button" class="rgb-copy-value" data-copy-rgb="${escapeHtml(rgb)}" title="${escapeHtml(rgb)} をクリックでコピー" aria-label="${escapeHtml(rgb)} をコピー">${text}<span class="rgb-copy-icon" aria-hidden="true">⧉</span></button>`:`<span>${text}</span>`;
+    const background=value.background||"";
+    return `<div class="scheme-row"><b>${escapeHtml(def.label)}</b><span class="spec-label">${label}<i class="tiny-swatch${background?"":" empty"}"${background?` style="background:${background}"`:""}></i></span></div>`;
+  }).join("");
   return `<article class="scheme-card" data-id="${escapeHtml(item.id)}">
       <div class="swatch-band" aria-label="カラーサンプル">${bands}</div>
       <div class="scheme-inner"><div class="scheme-head"><div><h4>${escapeHtml(item.name)}</h4>${item.tag?`<small>${escapeHtml(item.tag)}</small>`:""}</div><span class="group-tag">${escapeHtml(item.group)}</span></div>
@@ -419,7 +506,14 @@ async function removeScheme(id){
   else{item.archived=willArchive;storeLocal()}
   if(editId===id)clearForm();render();updateSyncControls();
 }
-function renderPalette(){const cat=$("paletteCategory").value;const q=$("paletteSearch").value.trim().toLowerCase();const list=PALETTE.filter(x=>(cat==="すべて"||x.category===cat)&&(!q||`${x.number} ${x.name}`.toLowerCase().includes(q)));$("paletteGrid").innerHTML=list.map(x=>`<div class="palette-item"><div class="palette-swatch" style="--swatch:${normalizeHex(x.hex)||"#e9edf4"}"></div><b>${escapeHtml(x.number)}. ${escapeHtml(x.name)}</b><small>${escapeHtml(x.category)}</small></div>`).join("")}
+function renderPalette(){
+  const cat=$("paletteCategory").value, q=$("paletteSearch").value.trim().toLowerCase();
+  const list=PALETTE.filter(x=>(cat==="すべて"||x.category===cat)&&(!q||`${x.number} ${x.name}`.toLowerCase().includes(q)));
+  $("paletteGrid").innerHTML=list.map(x=>{
+    const pv=previewColorForPreset(x);
+    return `<div class="palette-item"><div class="palette-swatch" style="--swatch:${pv.background||"#e9edf4"}" title="${pv.approximate?"参考色":"登録色"}"></div><b>${escapeHtml(x.number)}. ${escapeHtml(x.name)}</b><small>${escapeHtml(x.category)}${pv.approximate?" · 参考色":""}</small></div>`;
+  }).join("");
+}
 function setupPaletteDialog(){
   $("paletteCategory").innerHTML=["すべて",...PRESET_CATEGORIES].map(x=>`<option>${x}</option>`).join("");
   $("paletteBtn").addEventListener("click",()=>{$("paletteDialog").showModal();renderPalette()});
@@ -448,6 +542,8 @@ function setupEvents(){
   $("categoryTabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)return;activeGroup=b.dataset.group;render()});
   $("addForm").addEventListener("submit",addScheme);$("clearFormBtn").addEventListener("click",clearForm);
   $("schemeSections").addEventListener("click",e=>{
+    const rgb=e.target.closest("[data-copy-rgb]");
+    if(rgb){copyRgbValue(rgb.dataset.copyRgb);return;}
     const edit=e.target.closest("[data-edit]");if(edit){editScheme(edit.dataset.edit);return}
     const del=e.target.closest("[data-delete]");if(del)removeScheme(del.dataset.delete);
   });
