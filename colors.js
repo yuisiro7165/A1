@@ -73,7 +73,7 @@ function previewColorForPreset(p){
 function copyTextFromRGB(value){
   const match=String(value||"").match(/^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i);
   if(!match||match.slice(1).some(v=>Number(v)>255))return "";
-  return `rgb(${Number(match[1])},${Number(match[2])},${Number(match[3])})`;
+  return `rgb(${Number(match[1])}, ${Number(match[2])}, ${Number(match[3])})`;
 }
 async function copyRgbValue(rgb){
   const value=copyTextFromRGB(rgb);if(!value)return;
@@ -304,7 +304,7 @@ async function migrateLocalRecords(){
 function presetOptions(category, selected=""){
   return PALETTE.filter(x=>x.category===category).map(x=>`<option value="${escapeHtml(x.id)}" ${x.id===selected?"selected":""}>${escapeHtml(x.number)}. ${escapeHtml(x.name)}</option>`).join("");
 }
-function defaultSpec(){return {enabled:false,type:"クラシック",presetId:"",finish:"クラシック",rgb:"rgb(255,255,255)",hex:"#FFFFFF"}}
+function defaultSpec(){return {enabled:false,type:"クラシック",presetId:"",finish:"クラシック",rgb:"rgb(255, 255, 255)",hex:"#FFFFFF"}}
 function getSlotState(key){
   const root=document.querySelector(`[data-slot="${key}"]`);if(!root)return defaultSpec();
   const type=root.querySelector(".slot-type").value;
@@ -315,12 +315,12 @@ function getSlotState(key){
   if(type==="RGBピッカー"){
     spec.finish=root.querySelector(".finish-select")?.value||"クラシック";
     const rgb=parseRgb(root.querySelector(".rgb-text")?.value||"")||{r:255,g:255,b:255};
-    spec.rgb=`rgb(${rgb.r},${rgb.g},${rgb.b})`;spec.hex=rgbToHex(rgb.r,rgb.g,rgb.b);
+    spec.rgb=`rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;spec.hex=rgbToHex(rgb.r,rgb.g,rgb.b);
   }
   if(type==="HEXピッカー"){
     spec.finish=root.querySelector(".finish-select")?.value||"クラシック";
     spec.hex=normalizeHex(root.querySelector(".hex-text")?.value)||"#FFFFFF";
-    const rgb=hexToRgb(spec.hex);spec.rgb=rgb?`rgb(${rgb.r},${rgb.g},${rgb.b})`:"";
+    const rgb=hexToRgb(spec.hex);spec.rgb=rgb?`rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`:"";
   }
   return spec;
 }
@@ -345,7 +345,7 @@ function renderSlotDynamic(root){
     const p=dynamic.querySelector(".preset-select");if(!p.value&&p.options.length)p.selectedIndex=0;
   }else if(type==="RGBピッカー"){
     dynamic.innerHTML=`<label>仕上げ選択<select class="finish-select">${PICKER_FINISHES.map(x=>`<option>${x}</option>`).join("")}</select></label>
-      <label>RGB<div class="picker-row"><input class="native-picker rgb-color" type="color" value="#FFFFFF"><input class="rgb-text" value="rgb(255,255,255)" placeholder="rgb(255,255,255)"></div></label><button type="button" class="rgb-editor-copy" title="現在のRGB値をコピー">⧉ RGBをコピー</button>`;
+      <label>RGB<div class="picker-row"><input class="native-picker rgb-color" type="color" value="#FFFFFF"><input class="rgb-text" value="rgb(255, 255, 255)" placeholder="rgb(255, 255, 255)"></div></label><button type="button" class="rgb-editor-copy" title="現在のRGB値をコピー">⧉ RGBをコピー</button>`;
   }else{
     dynamic.innerHTML=`<label>仕上げ選択<select class="finish-select">${PICKER_FINISHES.map(x=>`<option>${x}</option>`).join("")}</select></label>
       <label>HEX<div class="picker-row"><input class="native-picker hex-color" type="color" value="#FFFFFF"><input class="hex-text" value="#FFFFFF" maxlength="7" placeholder="#FFFFFF"></div></label>`;
@@ -360,7 +360,7 @@ function updateSlotPreview(root){
     if(p){text=`${type} / ${p.number}.${p.name}`;color=previewColorForPreset(p).background}
   }else if(type==="RGBピッカー"){
     const rgb=parseRgb(root.querySelector(".rgb-text")?.value||"");const finish=root.querySelector(".finish-select")?.value||"クラシック";
-    if(rgb){color=rgbToHex(rgb.r,rgb.g,rgb.b);text=`${finish} / rgb(${rgb.r},${rgb.g},${rgb.b})`}
+    if(rgb){color=rgbToHex(rgb.r,rgb.g,rgb.b);text=`${finish} / rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`}
   }else{
     const h=normalizeHex(root.querySelector(".hex-text")?.value);const finish=root.querySelector(".finish-select")?.value||"クラシック";
     if(h){color=h;text=`${finish} / ${h}`}
@@ -385,7 +385,7 @@ function setupSlotEditors(){
   $("slotEditors").addEventListener("change",e=>{
     const root=e.target.closest(".slot-editor");if(!root)return;
     if(e.target.classList.contains("slot-type")) renderSlotDynamic(root);
-    if(e.target.classList.contains("rgb-color")){const rgb=hexToRgb(e.target.value);root.querySelector(".rgb-text").value=`rgb(${rgb.r},${rgb.g},${rgb.b})`}
+    if(e.target.classList.contains("rgb-color")){const rgb=hexToRgb(e.target.value);root.querySelector(".rgb-text").value=`rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`}
     if(e.target.classList.contains("hex-color")) root.querySelector(".hex-text").value=e.target.value.toUpperCase();
     updateSlotPreview(root);
     refreshSlotToggle(root);
@@ -409,7 +409,7 @@ function specDisplay(spec){
     return {text:`${spec.type} / ${p.number}.${p.name}`, ...previewColorForPreset(p),copyRgb:""};
   }
   if(spec.type==="RGBピッカー"){
-    const rgb=copyTextFromRGB(spec.rgb)||(hexToRgb(spec.hex)?(()=>{const c=hexToRgb(spec.hex);return `rgb(${c.r},${c.g},${c.b})`})():"");
+    const rgb=copyTextFromRGB(spec.rgb)||(hexToRgb(spec.hex)?(()=>{const c=hexToRgb(spec.hex);return `rgb(${c.r}, ${c.g}, ${c.b})`})():"");
     const color=normalizeHex(spec.hex)||(rgb?(()=>{const r=parseRgb(rgb);return rgbToHex(r.r,r.g,r.b)})():"");
     return {text:`${spec.finish||"クラシック"} / ${rgb||spec.rgb||""}`,color,background:color,copyRgb:rgb};
   }
@@ -511,7 +511,7 @@ function editScheme(id){
     if(PRESET_CATEGORIES.includes(x?.type))root.querySelector(".preset-select").value=x.presetId||"";
     else if(x?.type==="RGBピッカー"){
       root.querySelector(".finish-select").value=x.finish||"クラシック";
-      root.querySelector(".rgb-text").value=x.rgb||"rgb(255,255,255)";
+      root.querySelector(".rgb-text").value=copyTextFromRGB(x.rgb)||x.rgb||"rgb(255, 255, 255)";
       root.querySelector(".rgb-color").value=normalizeHex(x.hex)||"#FFFFFF";
     }else if(x?.type==="HEXピッカー"){
       root.querySelector(".finish-select").value=x.finish||"クラシック";
