@@ -218,3 +218,36 @@ body[data-pt-page="mechanic"] .summary{border-color:var(--line)}
  body[data-pt-page="guide"] .page-intro{padding:17px 14px}
  body[data-pt-page="color"] .summary-bar{padding:16px 12px}
 }
+
+
+/* Mechanic Desk: フルカスと全修理の通常ボタンを同じデザインにする。
+   選択中 (.is-active) は元の緑表示を維持する。 */
+body[data-pt-page="mechanic"] button.full-custom-btn,
+body[data-pt-page="mechanic"] button.full-repair-btn {
+  min-height:37px;
+  padding:9px 13px;
+  border-radius:9px;
+  font-size:12px;
+  font-weight:800;
+  line-height:1.2;
+  white-space:nowrap;
+}
+body[data-pt-page="mechanic"] button.full-custom-btn:not(.is-active),
+body[data-pt-page="mechanic"] button.full-repair-btn:not(.is-active) {
+  background:#596cf7;
+  border-color:#596cf7;
+  color:#fff;
+}
+body[data-pt-page="mechanic"] button.full-custom-btn:not(.is-active):hover,
+body[data-pt-page="mechanic"] button.full-repair-btn:not(.is-active):hover {
+  background:#4356de;
+  border-color:#4356de;
+  color:#fff;
+}
+@media (max-width:420px) {
+  body[data-pt-page="mechanic"] button.full-custom-btn,
+  body[data-pt-page="mechanic"] button.full-repair-btn {
+    font-size:11px;
+    padding:8px 10px;
+  }
+}
