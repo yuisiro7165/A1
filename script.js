@@ -152,6 +152,41 @@ function calculate() {
 document.addEventListener("input", calculate);
 document.addEventListener("change", calculate);
 
+/* =========================
+   全修理：7か所（¥300,000 × 7 = ¥2,100,000）
+   修理件数の既存入力欄と連動するため、金額は二重計上しない。
+   修理は善良市民証明書の10%割引対象外。
+========================= */
+const fullRepairBtn = document.getElementById("fullRepairBtn");
+const repairQtyInput = document.getElementById("repairQty");
+const FULL_REPAIR_COUNT = 7;
+
+function updateFullRepairButton() {
+  if (!fullRepairBtn || !repairQtyInput) return;
+  const active = Number(repairQtyInput.value) === FULL_REPAIR_COUNT;
+  fullRepairBtn.classList.toggle("is-active", active);
+  fullRepairBtn.setAttribute("aria-pressed", String(active));
+  fullRepairBtn.textContent = active ? "✓ 全修理解除" : "全修理（7か所）";
+  fullRepairBtn.title = active
+    ? "全修理を解除して、修理件数を0に戻します"
+    : "修理件数を7か所に設定します（7か所 × ¥300,000）";
+}
+
+if (fullRepairBtn && repairQtyInput) {
+  fullRepairBtn.addEventListener("click", () => {
+    const isSelected = Number(repairQtyInput.value) === FULL_REPAIR_COUNT;
+    repairQtyInput.value = isSelected ? "0" : String(FULL_REPAIR_COUNT);
+    repairQtyInput.dispatchEvent(new Event("input", { bubbles:true }));
+    updateFullRepairButton();
+    document.getElementById("message").textContent = isSelected
+      ? "全修理を解除しました"
+      : "全修理7か所（¥2,100,000）を設定しました";
+  });
+  repairQtyInput.addEventListener("input", updateFullRepairButton);
+  repairQtyInput.addEventListener("change", updateFullRepairButton);
+  updateFullRepairButton();
+}
+
 /* 性能カスタム：1項目につき1段階 */
 document.querySelectorAll(".tier-check").forEach(input => {
   input.addEventListener("change", () => {
@@ -968,6 +1003,7 @@ document.getElementById("resetBtn").addEventListener("click", () => {
   document.getElementById("analyzerResult").classList.remove("show");
 
   updateFullCustomButton();
+  updateFullRepairButton();
   calculate();
   document.getElementById("message").textContent =
     "リセットしました";
