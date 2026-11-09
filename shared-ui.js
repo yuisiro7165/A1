@@ -25,3 +25,23 @@
     }catch(err){}
   });
 })();
+
+
+/* Mechanic Desk: performance parts are displayed in the same order as Parts Guide.
+   Move the existing rows, preserving checked states, event listeners, and pricing.
+   This runs on DOMContentLoaded, after script.js has built #tierItems. */
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('tierItems');
+  if (!container) return;
+  const order = [
+    'オイルポンプ',
+    'ドライブシャフト',
+    'シリンダーヘッド',
+    'バッテリーケーブル',
+    '燃料タンク'
+  ];
+  const rows = Array.from(container.children).filter(node => node.classList.contains('tier-row'));
+  const byName = new Map(rows.map(row => [row.firstElementChild?.textContent.trim(), row]));
+  if (!order.every(name => byName.has(name))) return;
+  for (const name of order) container.appendChild(byName.get(name));
+});
