@@ -34,11 +34,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('tierItems');
   if (!container) return;
   const order = [
+    'エンジン',
+    'トランスミッション',
+    'サスペンション',
+    'ブレーキ',
     'オイルポンプ',
     'ドライブシャフト',
     'シリンダーヘッド',
-    'バッテリーケーブル',
-    '燃料タンク'
+    '燃料タンク',
+    'バッテリーケーブル'
   ];
   const rows = Array.from(container.children).filter(node => node.classList.contains('tier-row'));
   const byName = new Map(rows.map(row => [row.firstElementChild?.textContent.trim(), row]));

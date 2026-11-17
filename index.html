@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mechanic Desk | PALETTE TOWN / GARAGE</title>
   <link rel="stylesheet" href="style.css?v=fullrepair-7-20261105-1">
-<link rel="stylesheet" href="shared-ui.css?v=button-match-dark-20261105-v2">
-<script src="shared-ui.js?v=ui-unify-20261020-1"></script>
+<link rel="stylesheet" href="shared-ui.css?v=ui-unify-20261020-1">
+<script src="shared-ui.js?v=price-order-20261117-1"></script>
 </head>
 <body data-pt-page="mechanic">
   <div class="app pt-page">
@@ -36,7 +36,7 @@
         <div class="certificate-bill">
           <div class="certificate-title">
             <span>善良市民証明書あり</span>
-            <span class="certificate-rate">対象料金 10% OFF</span>
+            <span class="certificate-rate">対象料金 20% OFF</span>
           </div>
           <button type="button" class="amount-click discounted-total" id="discountTotal"
             title="証明書割引後の金額をコピー" aria-label="善良市民証明書適用後0円をコピー">¥0</button>
@@ -45,10 +45,10 @@
       </div>
       <div class="summary-note">
         選択した作業・パーツをリアルタイム集計<br>
-        <strong>10%割引の対象</strong><br>
+        <strong>20%割引の対象</strong><br>
         性能・外装カスタム／塗装<br>
-        アーマー／ターボ／ニトロ新規<br>
-        <span class="summary-notice">※その他の作業・パーツは割引対象外</span>
+        アーマー／ターボ／アンチラグ／ドリフトタイヤ／マニュアルギア<br>
+        <span class="summary-notice">※修理・塗装缶・ニトロ新規／交換・ダクトテープ・ネオンコントローラー・クリーニングキットは割引対象外</span>
       </div>
       <div class="message" id="message" role="status" aria-live="polite"></div>
     </section>
@@ -90,24 +90,24 @@
             </div>
             <button id="fullRepairBtn" class="full-repair-btn" type="button"
               aria-pressed="false" aria-controls="repairQty"
-              title="修理件数を7か所に設定します（7か所 × ¥300,000）">全修理（7か所）</button>
+              title="修理件数を7か所に設定します（7か所 × ¥200,000）">全修理（7か所）</button>
           </div>
 
           <div class="basic-list">
             <label class="basic-row">
               <span>
                 修理（一か所）
-                <small>¥300,000 / 件</small>
+                <small>¥200,000 / 件</small>
               </span>
-              <input id="repairQty" type="number" min="0" step="1" value="0" data-price="300000" class="qty" aria-label="修理か所数">
+              <input id="repairQty" type="number" min="0" step="1" value="0" data-price="200000" class="qty" aria-label="修理か所数">
             </label>
 
             <label class="basic-row">
               <span>
                 パンク修理
-                <small>¥100,000 / 件</small>
+                <small>¥250,000 / 件</small>
               </span>
-              <input type="number" min="0" value="0" data-price="100000" class="qty">
+              <input type="number" min="0" value="0" data-price="250000" class="qty">
             </label>
 
             <label class="basic-row">
@@ -126,16 +126,16 @@
               <span class="section-no">03</span>
               <h2>外装カスタム</h2>
             </div>
-            <strong>¥200,000 / 件</strong>
+            <strong>¥800,000 / 件</strong>
           </div>
 
           <div class="basic-list">
             <label class="basic-row">
               <span>
                 カスタム作業
-                <small>¥200,000 / 件</small>
+                <small>¥800,000 / 件</small>
               </span>
-              <input id="customQty" type="number" min="0" value="0" data-price="200000" data-discount-eligible="true" class="qty">
+              <input id="customQty" type="number" min="0" value="0" data-price="800000" data-discount-eligible="true" class="qty">
             </label>
           </div>
         </section>
@@ -146,16 +146,16 @@
               <span class="section-no">04</span>
               <h2>塗装</h2>
             </div>
-            <strong>¥100,000 / 件</strong>
+            <strong>¥200,000 / 件</strong>
           </div>
 
           <div class="basic-list">
             <label class="basic-row">
               <span>
                 塗装（一か所）
-                <small>¥100,000 / 件</small>
+                <small>¥200,000 / 件</small>
               </span>
-              <input id="paintQty" type="number" min="0" value="0" data-price="100000" data-discount-eligible="true" class="qty">
+              <input id="paintQty" type="number" min="0" value="0" data-price="200000" data-discount-eligible="true" class="qty">
             </label>
           </div>
         </section>
@@ -215,7 +215,7 @@
               カスタム
               <small class="auto-note">料金へ自動反映</small>
             </span>
-            <strong><span id="analysisCustomCount">0</span>件 × ¥200,000</strong>
+            <strong><span id="analysisCustomCount">0</span>件 × ¥800,000</strong>
           </div>
 
           <div class="analysis-charge">
@@ -223,7 +223,7 @@
               塗装
               <small class="auto-note">料金へ自動反映</small>
             </span>
-            <strong><span id="analysisPaintCount">0</span>件 × ¥100,000</strong>
+            <strong><span id="analysisPaintCount">0</span>件 × ¥200,000</strong>
           </div>
         </div>
 
@@ -271,6 +271,6 @@
 
   </div>
 
-  <script src="script.js?v=fullrepair-7-20261105-1"></script>
+  <script src="script.js?v=price-order-20261117-1"></script>
 </body>
 </html>

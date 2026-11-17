@@ -1,27 +1,27 @@
 const tierData = {
-  "エンジン": [1200000, 1300000, 1600000, 2000000, 2200000],
-  "トランスミッション": [1200000, 1300000, 1600000, 2000000],
-  "サスペンション": [1200000, 1300000, 1600000, 2000000, 2200000],
-  "ブレーキ": [1200000, 1300000, 1600000, 2000000],
-  "オイルポンプ": [1200000, 1300000, 1600000],
-  "ドライブシャフト": [1200000, 1300000, 1600000],
-  "シリンダーヘッド": [1200000, 1300000, 1600000],
-  "燃料タンク": [1200000, 1300000, 1600000],
-  "バッテリーケーブル": [1200000, 1300000, 1600000]
+  "エンジン": [1500000, 2000000, 2500000, 3000000, 3400000],
+  "トランスミッション": [1500000, 2000000, 2500000, 3000000],
+  "サスペンション": [1500000, 2000000, 2500000, 3000000, 3400000],
+  "ブレーキ": [1500000, 2000000, 2500000, 3000000],
+  "オイルポンプ": [1500000, 2000000, 2500000],
+  "ドライブシャフト": [1500000, 2000000, 2500000],
+  "シリンダーヘッド": [1500000, 2000000, 2500000],
+  "燃料タンク": [1500000, 2000000, 2500000],
+  "バッテリーケーブル": [1500000, 2000000, 2500000]
 };
 
 const parts = [
   ["アーマー", 40000000, false],
-  ["ターボ", 5000000, false],
-  ["ニトロ新規", 4000000, true],
-  ["ニトロ交換", 2000000, true],
-  ["アンチラグ", 3000000, false],
-  ["ドリフトタイヤ", 1000000, false],
-  ["マニュアルギア", 1000000, false],
-  ["ダクトテープ", 500000, true],
-  ["車両塗装缶", 250000, true],
+  ["ターボ", 4500000, false],
+  ["アンチラグ", 2000000, false],
+  ["ドリフトタイヤ", 2000000, false],
+  ["マニュアルギア", 2000000, false],
+  ["塗装缶", 250000, true],
+  ["ニトロ新規", 3000000, true],
+  ["ニトロ交換", 1500000, true],
+  ["ダクトテープ", 100000, true],
   ["ネオンコントローラー", 200000, true],
-  ["クリーニングキット", 100000, true]
+  ["クリーニングキット", 200000, true]
 ];
 
 const yen = n => "¥" + Number(n).toLocaleString("ja-JP");
@@ -75,7 +75,7 @@ for (const [name, prices] of Object.entries(tierData)) {
 
 const partsGrid = document.getElementById("partsGrid");
 
-const certificateEligibleParts = new Set(["アーマー", "ターボ", "ニトロ新規"]);
+const certificateEligibleParts = new Set(["アーマー", "ターボ", "アンチラグ", "ドリフトタイヤ", "マニュアルギア"]);
 for (const [name, price, hasQty] of parts) {
   const card = document.createElement("div");
   card.className = "part";
@@ -104,7 +104,7 @@ for (const [name, price, hasQty] of parts) {
    合計計算
 ========================= */
 
-// 証明書対象のみを10%割引。対象外料金には割引を適用しない。
+// 写真の白市民割引対象のみ20%割引。ニトロ新規ほか対象外には適用しない。
 function getChargeBreakdown() {
   let total = 0;
   let eligibleTotal = 0;
@@ -121,7 +121,7 @@ function getChargeBreakdown() {
   });
   document.querySelectorAll(".tier-check:checked, .part-check:checked")
     .forEach(input => addCharge(input, 1));
-  const savings = Math.round(eligibleTotal * 0.10);
+  const savings = Math.round(eligibleTotal * 0.20);
   return { total, eligibleTotal, savings, discountedTotal: total - savings };
 }
 
@@ -153,9 +153,9 @@ document.addEventListener("input", calculate);
 document.addEventListener("change", calculate);
 
 /* =========================
-   全修理：7か所（¥300,000 × 7 = ¥2,100,000）
+   全修理：7か所（¥200,000 × 7 = ¥1,400,000）
    修理件数の既存入力欄と連動するため、金額は二重計上しない。
-   修理は善良市民証明書の10%割引対象外。
+   修理は白市民割引20%の対象外。
 ========================= */
 const fullRepairBtn = document.getElementById("fullRepairBtn");
 const repairQtyInput = document.getElementById("repairQty");
@@ -169,7 +169,7 @@ function updateFullRepairButton() {
   fullRepairBtn.textContent = active ? "✓ 全修理解除" : "全修理（7か所）";
   fullRepairBtn.title = active
     ? "全修理を解除して、修理件数を0に戻します"
-    : "修理件数を7か所に設定します（7か所 × ¥300,000）";
+    : "修理件数を7か所に設定します（7か所 × ¥200,000）";
 }
 
 if (fullRepairBtn && repairQtyInput) {
@@ -180,7 +180,7 @@ if (fullRepairBtn && repairQtyInput) {
     updateFullRepairButton();
     document.getElementById("message").textContent = isSelected
       ? "全修理を解除しました"
-      : "全修理7か所（¥2,100,000）を設定しました";
+      : "全修理7か所（¥1,400,000）を設定しました";
   });
   repairQtyInput.addEventListener("input", updateFullRepairButton);
   repairQtyInput.addEventListener("change", updateFullRepairButton);
@@ -594,7 +594,7 @@ function parseOrder(text) {
 /* 必要アイテム名は、これまで確認できた対応のみ */
 const requiredItemMap = {
   "外装カスタム":["外装コスメティックパーツ","Exterior Cosmetics / externals"],
-  "カラー":["車両塗装缶","Vehicle Paint Can / paintcan"],
+  "カラー":["塗装缶","Vehicle Paint Can / paintcan"],
   "バンパー":["バンパーパーツ","Vehicle Bumper / bumper"],
   "スカート":["スカートパーツ","Vehicle Skirts / skirts"],
   "ナンバープレート":["カスタムプレート","Customized Plates / customplate"],
