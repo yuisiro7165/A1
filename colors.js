@@ -116,7 +116,7 @@ function isMine(item){return !CLOUD_ENABLED || Boolean(authState?.localId && ite
 function updateSyncControls(){
   $("syncModeTitle").textContent=CLOUD_ENABLED?"みんなのカラー・自動同期":"この端末だけに保存";
   $("syncModeDescription").textContent=CLOUD_ENABLED
-    ? "登録や閲覧にログインは不要です。カラーは全員と共有され、登録者だけが自分のカラーを編集・削除できます。"
+    ? "登録や閲覧にログインは不要です。カラーは全員と共有され、編集・復元は登録者のみ可能です。共有一覧からの削除は誰でもできます（元データは保持）。"
     : "現在は端末内のみに保存されています。共有するには管理者がFirebaseを一度だけ設定してください。";
   $("cloudRefreshBtn").hidden=!CLOUD_ENABLED;
   $("migrateBtn").hidden=!CLOUD_ENABLED||!cloudReady||!authState||!localRecords().length;
@@ -241,7 +241,7 @@ async function refreshCloud(showStatus=false){
     cloudReady=true;
     if(authState){
       setStatus("共有中・約5秒ごとに同期",true);
-      $("storageNote").textContent="全員のカラーを共有表示中。自分で登録したカラーは、この端末から編集・削除できます。";
+      $("storageNote").textContent="全員のカラーを共有表示中。すべてのカラーを共有中。削除は誰でも可能で、編集・復元は登録者本人のみ行えます。";
     }else if(authFailure){
       setStatus("匿名認証エラー・登録停止中");
       $("storageNote").textContent=`カラー一覧は閲覧できますが、登録には匿名認証が必要です：${authFailure} 『接続・同期を再試行』を押してください。`;
@@ -473,7 +473,7 @@ function cardHtml(item){
       ${item.note?`<div class="scheme-note">${escapeHtml(item.note)}</div>`:""}
       <div class="scheme-actions">${isMine(item)
         ? `<button type="button" class="edit-btn" data-edit="${escapeHtml(item.id)}">編集する</button><button type="button" class="delete-btn" data-delete="${escapeHtml(item.id)}">${item.archived?"復元する":"削除する"}</button>`
-        : `<span class="readonly-label">${CLOUD_ENABLED?"ほかの人が登録・閲覧のみ":""}</span>`}</div></div>
+        : `<button type="button" class="delete-btn" data-delete="${escapeHtml(item.id)}" title="共有一覧から非表示にします（登録者が復元可能）">削除する</button>`}</div></div>
     </article>`;
 }
 function filtered(){const q=$("searchInput").value.trim().toLowerCase();return schemes.filter(x=>(Boolean(x.archived)===showArchived&&(!showArchived||isMine(x)))&&(activeGroup==="すべて"||x.group===activeGroup)&&(!q||`${x.group} ${x.name} ${x.tag||""} ${x.note||""}`.toLowerCase().includes(q)))}
@@ -549,11 +549,26 @@ async function addScheme(e){
   clearForm();render();updateSyncControls();
 }
 async function removeScheme(id){
-  const item=schemes.find(x=>x.id===id);if(!item||!isMine(item))return;
+  const item=schemes.find(x=>x.id===id);if(!item)return;
+  const mine=isMine(item);
   const willArchive=!item.archived;
-  if(!confirm(`「${item.name}」を${willArchive?"削除済みに移動":"復元"}しますか？`))return;
-  if(CLOUD_ENABLED){if(!(await runCloudMutation(()=>updateCloudRecord(item.id,{archived:willArchive}))))return}
-  else{item.archived=willArchive;storeLocal()}
+  // Visitors may hide a visible entry, but restoring/deep editing still requires ownership.
+  if(!willArchive&&!mine)return;
+  const notice=willArchive
+    ? `「${item.name}」を全員の共有一覧から削除（非表示）しますか？\n元データは保持され、登録者が復元できます。`
+    : `「${item.name}」を共有一覧に復元しますか？`;
+  if(!confirm(notice))return;
+  if(CLOUD_ENABLED){
+    const ok=await runCloudMutation(()=>{
+      if(willArchive&&!mine){
+        // Limited to the archived flag. Firebase rules MUST authorize this path only.
+        return firebaseRequest("PUT",`colorSchemes/${item.id}/archived`,true);
+      }
+      // Owner's existing update routine maintains updatedAt, ownerUid, and optimistic locking.
+      return updateCloudRecord(item.id,{archived:willArchive});
+    });
+    if(!ok)return;
+  }else{item.archived=willArchive;storeLocal()}
   if(editId===id)clearForm();render();updateSyncControls();
 }
 function renderPalette(){

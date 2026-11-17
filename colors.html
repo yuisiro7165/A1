@@ -4,23 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f3f5fb">
-  <title>Color Book | PALETTE TOWN / GARAGE</title>
+  <title>カラー | ラフシティ</title>
   <link rel="stylesheet" href="colors.css?v=pearl-slotfix-20261102-2">
 <link rel="stylesheet" href="shared-ui.css?v=ui-unify-20261020-1">
-<script src="shared-ui.js?v=ui-unify-20261020-1"></script>
+<script src="shared-ui.js?v=roughcity-20261117-2"></script>
 </head>
 <body class="light" data-pt-page="color">
 <div class="page pt-page">
   <header class="topbar pt-header">
-  <a class="pt-brand" href="index.html" aria-label="Palette Town Garage ホーム">
-    <span class="pt-brand-mark" aria-hidden="true">PT</span>
-    <span class="pt-brand-copy"><small>PALETTE TOWN / GARAGE</small><strong class="pt-header-name">Color Book</strong></span>
+  <a class="pt-brand" href="index.html" aria-label="ラフシティ 料金表へ">
+    <span class="pt-brand-mark" aria-hidden="true">ラ</span>
+    <span class="pt-brand-copy"><strong class="pt-header-name">ラフシティ</strong></span>
   </a>
   <nav class="pt-header-actions" aria-label="メインナビゲーション">
-    <span class="pt-nav-pages"><a class="pt-tab" href="index.html">Mechanic Desk</a>
-<a class="pt-tab is-active" href="colors.html" aria-current="page">Color Book</a>
-<a class="pt-tab" href="guide.html">Parts Guide</a>
-</span>
+    <span class="pt-nav-pages">
+      <a class="pt-tab" href="index.html">料金表</a>
+      <a class="pt-tab is-active" href="colors.html" aria-current="page">カラー</a>
+      <a class="pt-tab" href="guide.html">パーツ</a>
+    </span>
     <span class="pt-nav-tools"><button id="paletteBtn" class="pt-utility pt-primary" type="button">塗装一覧</button><button id="themeBtn" class="pt-theme" type="button" title="表示モード切替" aria-label="表示モードを切り替える">☾</button></span>
   </nav>
 </header>
@@ -45,7 +46,7 @@
       <div class="list-subhead"><span id="viewTitle">すべてのカラー</span><span id="syncStatus" role="status">読み込み中…</span></div>
       <div id="schemeSections" class="schemes-root"></div>
        <p class="preset-preview-hint">※ プリセット色（クラシック・メタリック・マット・金属・カメレオン）は参考色です。ゲーム内の実際の色とは異なる場合があります。RGBの値はクリックしてコピーできます。</p>
-      <p class="registry-hint">※ 共有モードでは全員のカラーを閲覧でき、各自が登録したカラーを編集できます。匿名認証は自動で行われます。</p>
+      <p class="registry-hint">※ 共有モードでは誰でもカラーを登録・閲覧し、共有一覧から削除できます。編集と復元は登録者のみ可能です。削除しても元データは残ります。匿名認証は自動で行われます。</p>
     </section>
 
     <aside class="settings-column">
@@ -89,6 +90,6 @@
 </dialog>
 <script src="colors-data.js?v=20261008-2305"></script>
 <script src="shared-config.js?v=syncdiag-20261009-5"></script>
-<script src="colors.js?v=rgb-space-20261102-1"></script>
+<script src="colors.js?v=shared-delete-20261117-1"></script>
 </body>
 </html>
