@@ -21,6 +21,8 @@ let syncInProgress = false;
 let editId = null;
 let syncTimer = null;
 let showArchived = false;
+let hideRulesReady = false;
+let hideRulesWarningLogged = false;
 let authFailure = "";
 let authRetryAfter = 0;
 let authRetryPromise = null;
@@ -236,12 +238,33 @@ async function refreshCloud(showStatus=false){
   syncInProgress=true;
   try{
     if(showStatus)setStatus("共有カラーを読み込み中…",true);
-    const next=safeRecords(await firebaseRequest("GET","colorSchemes"));
+    const stored=await firebaseRequest("GET","colorSchemes");
+    // Deleted/hidden status is kept separately from the original color records.
+    // Legacy records may have no `archived` field, so changing the original node
+    // can fail its validation. A separate tombstone is safer for legacy records.
+    let hides={};
+    try{
+      hides=await firebaseRequest("GET","colorHides") || {};
+      hideRulesReady=true;
+    }catch(error){
+      hideRulesReady=false;
+      // Keep public color browsing operational until the new rules are published.
+      if(!hideRulesWarningLogged){console.warn("Color Book: colorHides rules must be published",error);hideRulesWarningLogged=true;}
+    }
+    const hiddenIds=new Set(Object.entries(hides).filter(([,v])=>v===true).map(([id])=>id));
+    const next=safeRecords(stored).map(item=>({
+      ...item,
+      _archiveFromRecord:item.archived===true,
+      _archiveFromHides:hiddenIds.has(item.id),
+      archived:item.archived===true || hiddenIds.has(item.id)
+    }));
     if(!cloudReady||JSON.stringify(next)!==JSON.stringify(schemes)){schemes=next;render()}
     cloudReady=true;
     if(authState){
       setStatus("共有中・約5秒ごとに同期",true);
-      $("storageNote").textContent="全員のカラーを共有表示中。すべてのカラーを共有中。削除は誰でも可能で、編集・復元は登録者本人のみ行えます。";
+      $("storageNote").textContent=hideRulesReady
+        ? "全員のカラーを共有表示中。削除は誰でも可能で、編集・復元は登録者本人のみ行えます。"
+        : "カラー一覧は表示できますが、削除機能のFirebaseルールが未公開です。付属の firebase-rules.json をRealtime Databaseの「ルール」に設定し、必ず公開してください。";
     }else if(authFailure){
       setStatus("匿名認証エラー・登録停止中");
       $("storageNote").textContent=`カラー一覧は閲覧できますが、登録には匿名認証が必要です：${authFailure} 『接続・同期を再試行』を押してください。`;
@@ -268,18 +291,18 @@ async function loadData(){
     await refreshCloud();
   },SYNC_INTERVAL_MS);
 }
-async function runCloudMutation(callback){
+async function runCloudMutation(callback,operation="保存"){
   if(!cloudReady||!authState){alert("共有DBへの接続または自動認証が完了していません。少し待って再試行してください。");return false}
   const failure=$("saveFailure"); if(failure){failure.hidden=true;failure.textContent="";}
-  mutationInProgress=true;setStatus("共有カラーを保存中…",true);updateSyncControls();
+  mutationInProgress=true;setStatus(`共有カラーを${operation}中…`,true);updateSyncControls();
   let ok=false;
-  try{await callback();ok=true;setStatus("共有データに保存しました",true)}
+  try{await callback();ok=true;setStatus(`共有カラーを${operation}しました`,true)}
   catch(err){
     console.error("Palette Town DB save:",err);
-    setStatus("保存エラー");
+    setStatus(`${operation}エラー`);
     const failure=$("saveFailure");
-    if(failure){failure.hidden=false;failure.textContent=`共有に保存できませんでした：${err.message}`;failure.scrollIntoView({behavior:"smooth",block:"nearest"})}
-    else alert(`共有への保存に失敗しました：${err.message}`);
+    if(failure){failure.hidden=false;failure.textContent=`${operation}できませんでした：${err.message}`;failure.scrollIntoView({behavior:"smooth",block:"nearest"})}
+    else alert(`${operation}できませんでした：${err.message}`);
   }
   finally{mutationInProgress=false;await refreshCloud();updateSyncControls()}
   return ok;
@@ -559,14 +582,18 @@ async function removeScheme(id){
     : `「${item.name}」を共有一覧に復元しますか？`;
   if(!confirm(notice))return;
   if(CLOUD_ENABLED){
-    const ok=await runCloudMutation(()=>{
-      if(willArchive&&!mine){
-        // Limited to the archived flag. Firebase rules MUST authorize this path only.
-        return firebaseRequest("PUT",`colorSchemes/${item.id}/archived`,true);
+    const ok=await runCloudMutation(async()=>{
+      if(willArchive){
+        // Any anonymously authenticated visitor may hide this color, but cannot
+        // alter its contents, ownership, or permanently delete it.
+        if(!hideRulesReady)throw new Error("削除用Firebaseルールが未公開です。firebase-rules.jsonをRealtime Databaseに貼り付けて『公開』してください。");
+        await firebaseRequest("PUT",`colorHides/${item.id}`,true);
+      }else{
+        // Restoring still requires owning the original record.
+        if(item._archiveFromRecord)await updateCloudRecord(item.id,{archived:false});
+        if(item._archiveFromHides)await firebaseRequest("DELETE",`colorHides/${item.id}`);
       }
-      // Owner's existing update routine maintains updatedAt, ownerUid, and optimistic locking.
-      return updateCloudRecord(item.id,{archived:willArchive});
-    });
+    },willArchive?"削除":"復元");
     if(!ok)return;
   }else{item.archived=willArchive;storeLocal()}
   if(editId===id)clearForm();render();updateSyncControls();
