@@ -49,3 +49,34 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!order.every(name => byName.has(name))) return;
   for (const name of order) container.appendChild(byName.get(name));
 });
+
+/* ラフシティ：既存ページのヘッダー表記を統一。ボタン本体・イベント・IDは変更しない。 */
+document.addEventListener('DOMContentLoaded', () => {
+  const page = document.body?.dataset.ptPage;
+  if (!['mechanic', 'color', 'guide'].includes(page)) return;
+  const header = document.querySelector('.topbar.pt-header');
+  if (!header) return;
+
+  const mark = header.querySelector('.pt-brand-mark');
+  const name = header.querySelector('.pt-header-name');
+  const small = header.querySelector('.pt-brand-copy small');
+  const brand = header.querySelector('a.pt-brand');
+  if (mark) mark.textContent = 'ラ';
+  if (name) name.textContent = 'ラフシティ';
+  if (small) small.remove();
+  if (brand) brand.setAttribute('aria-label', 'ラフシティ 料金表へ');
+
+  const names = new Map([
+    ['index.html', '料金表'],
+    ['colors.html', 'カラー'],
+    ['guide.html', 'パーツ']
+  ]);
+  header.querySelectorAll('a.pt-tab').forEach(link => {
+    // Only relabel the known three internal navigation links.
+    const href = (link.getAttribute('href') || '').split(/[?#]/)[0];
+    if (names.has(href)) link.textContent = names.get(href);
+  });
+
+  const titles = {mechanic:'料金表', color:'カラー', guide:'パーツ'};
+  document.title = titles[page] + ' | ラフシティ';
+});
