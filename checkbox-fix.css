@@ -1,0 +1,30 @@
+/* ラフシティ / 性能カスタムのチェックマーク中央揃え用 CSS 追記パッチ */
+body[data-pt-page="mechanic"] .tier-cell input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 0;
+  line-height: normal;
+}
+body[data-pt-page="mechanic"] .tier-cell input[type="checkbox"]::after {
+  content: "";
+  display: block;
+  position: static;
+  left: auto;
+  top: auto;
+  width: 5px;
+  height: 8px;
+  margin: 0;
+  border: 0;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  box-sizing: border-box;
+  font-size: 0;
+  transform: translateY(-1px) rotate(45deg);
+  opacity: 0;
+}
+body[data-pt-page="mechanic"] .tier-cell input[type="checkbox"]:checked::after {
+  opacity: 1;
+}
