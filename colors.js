@@ -78,7 +78,13 @@ function copyTextFromRGB(value){
   return `rgb(${Number(match[1])}, ${Number(match[2])}, ${Number(match[3])})`;
 }
 async function copyRgbValue(rgb){
-  const value=copyTextFromRGB(rgb);if(!value)return;
+  return copyColorCode(copyTextFromRGB(rgb));
+}
+async function copyHexValue(hex){
+  return copyColorCode(normalizeHex(hex));
+}
+async function copyColorCode(value){
+  if(!value){showRgbToast("正しいカラーコードを入力してください");return;}
   try{
     if(navigator.clipboard && window.isSecureContext)await navigator.clipboard.writeText(value);
     else{
@@ -371,7 +377,7 @@ function renderSlotDynamic(root){
       <label>RGB<div class="picker-row"><input class="native-picker rgb-color" type="color" value="#FFFFFF"><input class="rgb-text" value="rgb(255, 255, 255)" placeholder="rgb(255, 255, 255)"></div></label><button type="button" class="rgb-editor-copy" title="現在のRGB値をコピー">⧉ RGBをコピー</button>`;
   }else{
     dynamic.innerHTML=`<label>仕上げ選択<select class="finish-select">${PICKER_FINISHES.map(x=>`<option>${x}</option>`).join("")}</select></label>
-      <label>HEX<div class="picker-row"><input class="native-picker hex-color" type="color" value="#FFFFFF"><input class="hex-text" value="#FFFFFF" maxlength="7" placeholder="#FFFFFF"></div></label>`;
+      <label>HEX<div class="picker-row"><input class="native-picker hex-color" type="color" value="#FFFFFF"><input class="hex-text" value="#FFFFFF" maxlength="7" placeholder="#FFFFFF"></div></label><button type="button" class="rgb-editor-copy hex-editor-copy" title="現在のHEX値をコピー">⧉ HEXをコピー</button>`;
   }
   updateSlotPreview(root);
 }
@@ -394,6 +400,8 @@ function updateSlotPreview(root){
 function setupSlotEditors(){
   $("slotEditors").innerHTML=SLOT_DEFS.map(slotEditorHtml).join("");
   $("slotEditors").addEventListener("click",e=>{
+    const hexCopy=e.target.closest(".hex-editor-copy");
+    if(hexCopy){const value=hexCopy.closest(".slot-editor")?.querySelector(".hex-text")?.value;copyHexValue(value);return;}
     const copy=e.target.closest(".rgb-editor-copy");
     if(copy){const value=copy.closest(".slot-editor")?.querySelector(".rgb-text")?.value;copyRgbValue(value);return;}
     const btn=e.target.closest(".slot-toggle");if(!btn)return;
@@ -438,7 +446,7 @@ function specDisplay(spec){
   }
   if(spec.type==="HEXピッカー"){
     const color=normalizeHex(spec.hex);
-    return {text:`${spec.finish||"クラシック"} / ${color||spec.hex||""}`,color,background:color,copyRgb:""};
+    return {text:`${spec.finish||"クラシック"} / ${color||spec.hex||""}`,color,background:color,copyRgb:"",copyHex:color};
   }
   return {text:"未設定",color:"",background:"",copyRgb:""};
 }
@@ -470,7 +478,14 @@ function refreshSlotToggle(root){
   root.querySelector(".slot-open-label").textContent=opened?"閉じる":active?"設定済み ✓ · 開く":"開く";
   root.classList.toggle("slot-configured",active);
 }
+// Hide only the redundant stand-alone HEX memo in the list. Stored notes remain intact.
+function visibleCardNote(note){
+  const value=String(note??"").trim();
+  const normalized=value.replace(/[\s・／/、,]/g,"").replace(/[。．.!！]$/g,"").toUpperCase();
+  return /^(?:メインサブ)(?:は)?HEX入力$/.test(normalized)?"":value;
+}
 function cardHtml(item){
+  const note=visibleCardNote(item.note);
   const colors=SLOT_DEFS.map(def=>({def,value:specDisplay(item.colors?.[def.key])}));
   const pearl=colors.find(x=>x.def.key==="pearl")?.value;
   const bands=colors.map(({def,value})=>{
@@ -481,9 +496,10 @@ function cardHtml(item){
     return `<div class="swatch-cell${background?"":" no-color"}${hasOverlay?" with-pearl":""}" ${background?`style="--swatch:${background}"`:""} title="${escapeHtml(label)}"><em>${escapeHtml(def.label)}</em></div>`;
   }).join("");
   const rows=colors.filter(({value})=>value).map(({def,value})=>{
-    const rgb=value.copyRgb;
+    const code=value.copyRgb||value.copyHex||"";
+    const copyType=value.copyHex?"hex":"rgb";
     const text=escapeHtml(value.text);
-    const label=rgb?`<button type="button" class="rgb-copy-value" data-copy-rgb="${escapeHtml(rgb)}" title="${escapeHtml(rgb)} をクリックでコピー" aria-label="${escapeHtml(rgb)} をコピー">${text}<span class="rgb-copy-icon" aria-hidden="true">⧉</span></button>`:`<span>${text}</span>`;
+    const label=code?`<button type="button" class="rgb-copy-value" data-copy-${copyType}="${escapeHtml(code)}" title="${escapeHtml(code)} をクリックでコピー" aria-label="${escapeHtml(code)} をコピー">${text}<span class="rgb-copy-icon" aria-hidden="true">⧉</span></button>`:`<span>${text}</span>`;
     const background=(def.key==="main"||def.key==="sub")&&pearl
       ? pearlPreviewBackground(value.background,pearl)
       :value.background||"";
@@ -493,7 +509,7 @@ function cardHtml(item){
       <div class="swatch-band" aria-label="カラーサンプル">${bands}</div>
       <div class="scheme-inner"><div class="scheme-head"><div><h4>${escapeHtml(item.name)}</h4>${item.tag?`<small>${escapeHtml(item.tag)}</small>`:""}</div><span class="group-tag">${escapeHtml(item.group)}</span></div>
       <div class="scheme-rows">${rows||'<div class="no-slots">カラー指定なし</div>'}</div>
-      ${item.note?`<div class="scheme-note">${escapeHtml(item.note)}</div>`:""}
+      ${note?`<div class="scheme-note">${escapeHtml(note)}</div>`:""}
       <div class="scheme-actions">${isMine(item)
         ? `<button type="button" class="edit-btn" data-edit="${escapeHtml(item.id)}">編集する</button><button type="button" class="delete-btn" data-delete="${escapeHtml(item.id)}">${item.archived?"復元する":"削除する"}</button>`
         : `<button type="button" class="delete-btn" data-delete="${escapeHtml(item.id)}" title="共有一覧から非表示にします（登録者が復元可能）">削除する</button>`}</div></div>
@@ -634,6 +650,8 @@ function setupEvents(){
   $("categoryTabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)return;activeGroup=b.dataset.group;render()});
   $("addForm").addEventListener("submit",addScheme);$("clearFormBtn").addEventListener("click",clearForm);
   $("schemeSections").addEventListener("click",e=>{
+    const hex=e.target.closest("[data-copy-hex]");
+    if(hex){copyHexValue(hex.dataset.copyHex);return;}
     const rgb=e.target.closest("[data-copy-rgb]");
     if(rgb){copyRgbValue(rgb.dataset.copyRgb);return;}
     const edit=e.target.closest("[data-edit]");if(edit){editScheme(edit.dataset.edit);return}
